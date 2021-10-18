@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import json
 import tensorflow as tf
 import tensorflow_datasets as tfds
 import torch.nn as nn
@@ -8,7 +9,7 @@ import torchvision
 import torchvision.transforms as transforms
 from ignite.metrics import Accuracy
 import torch
-
+from hessian_eigenthings import compute_hessian_eigenthings
 # from KFAC_Pytorch.optimizers.kfac import KFACOptimizer
 
 # Press Mayús+F10 to execute it or replace it with your code.
@@ -304,7 +305,7 @@ class NewNet(nn.Module):
         for module in self.modules():
             if not isinstance(module, NewSmallNet):
                 layers.append(module)
-        weights = ["weight"]*len(layers)
+        weights = ["weight"] * len(layers)
         return list(zip(layers, weights))
 
     def ensure_device(self, device):
@@ -664,13 +665,50 @@ class Net(nn.Module):
         self.fc1.to(device)
         self.fc2.to(device)
 
-    def apply_buffers(self):
-        masks = list(self.buffers())
+    def apply_mask(self, masks):
+        # masks = list(self.buffers())
+        i = 0
         for (name, param) in self.named_parameters():
             if 'bias' not in name:
-                param = param * masks[i].cuda()
+                param.data.mul_(masks[i].cuda())
                 i += 1
         return True
+    def create_JSON(self,path_to_file):
+        ini = {}
+        for name,param in self.named_parameters():
+           if "bias" not in name:
+               ini.update({name:{}})
+        json.dump(ini, path_to_file)
+    def inspect_and_record_weigths(self,masks,path_to_file,iter,epoch):
+        i = 0
+        for name,param in self.named_parameters():
+            if "bias" not in name:
+
+                weigth = param.data[masks[i].type(torch.BoolTensor)].detach().numpy().flatten()
+                new_data = {f"epoch {epoch}":{f"iter {iter}":weigth}}
+                with open(path_to_file, 'r+') as file:
+                    # First we load existing data into a dict.
+                    file_data = json.load(file)
+                    # Join new_data with file_data inside emp_details
+                    file_data[name].update(new_data)
+                    # Sets file's current position at offset.
+                    file.seek(0)
+                    # convert back to json.
+                    json.dump(file_data, file, indent=4)
+
+                i+=1
+
+    def inspect_and_record_gradients(self, masks, path_to_file):
+        i = 0
+        for name, param in self.named_parameters():
+            if "bias" not in name:
+                grad = param.grad.data[masks[i].type(torch
+                                                  .BoolTensor)].detach().numpy()
+                string = str(grad).replace("[", "").replace("]", "")
+                string = ' '.join(string.split())
+                i += 1
+        with open(path_to_file, "a") as f:
+                f.write(string + "\n")
 
     def partial_grad(self, data, target, loss_function):
         """
@@ -700,15 +738,16 @@ class Net(nn.Module):
 
     def constricted_train(self, dataset, loss_function, n_epoch, learning_rate, momentum, iter_testloader,
                           file_name_sufix, inverse_mask,
-                          restriction, optimizer="SGD"):
+                          restriction, optimizer="SGD",record =True):
         """
         Function to updated weights with a SVRG backpropagation
         args : dataset, loss function, number of epochs, learning rate
         return : total_loss_epoch, grad_norm_epoch
         """
         if optimizer == "SGD":
-            open(file_name_sufix + f"/test_restricted_training_value_{restriction}.txt", "w").close()
-            open(file_name_sufix + f"/loss_restricted_training_value_{restriction}.txt", "w").close()
+            if record:
+                open(file_name_sufix + f"/test_restricted_training_value_{restriction}.txt", "w").close()
+                open(file_name_sufix + f"/loss_restricted_training_value_{restriction}.txt", "w").close()
             velocity_buffer = {}
             dampening = 0
             nesterov = 0
@@ -757,19 +796,20 @@ class Net(nn.Module):
                             param.data.add_(-learning_rate, d_p)
                     # print statistics
                     running_loss += cur_loss.item()
-                    with open(file_name_sufix + f"/loss_restricted_training_value_{restriction}.txt", "a") as f:
-                        f.write(f"{cur_loss.item()}\n")
-                    eval = evaluate_model(self, None, iter_testloader, partial=True)
-                    with open(file_name_sufix + f"/test_restricted_training_value_{restriction}.txt", "a") as f:
-                        f.write(f"{eval}\n")
+                    if record:
+                        with open(file_name_sufix + f"/loss_restricted_training_value_{restriction}.txt", "a") as f:
+                            f.write(f"{cur_loss.item()}\n")
+                        eval = evaluate_model(self, None, iter_testloader, partial=True)
+                        with open(file_name_sufix + f"/test_restricted_training_value_{restriction}.txt", "a") as f:
+                            f.write(f"{eval}\n")
                     if i_data % 200 == 199:  # print every 2000 mini-batches
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i_data + 1, running_loss / 2000))
                         running_loss = 0.0
         if optimizer == "kronecker":
-
-            open(file_name_sufix + f"/test_krone_restricted_training_value_{restriction}.txt", "w").close()
-            open(file_name_sufix + f"/loss_krone_restricted_training_value_{restriction}.txt", "w").close()
+            if record:
+                open(file_name_sufix + f"/test_krone_restricted_training_value_{restriction}.txt", "w").close()
+                open(file_name_sufix + f"/loss_krone_restricted_training_value_{restriction}.txt", "w").close()
             optimizer = KFACOptimizer(self)
             criterion = loss_function
             for epoch in range(n_epoch):
@@ -800,12 +840,13 @@ class Net(nn.Module):
                     optimizer.step()
                     item = loss.item()
                     running_loss += item
-                    with open(file_name_sufix + f"/loss_krone_restricted_training_value_{restriction}.txt", "a") as f:
-                        f.write(f"{item}\n")
-                    eval = evaluate_model(self, None, iter_testloader, partial=True)
-                    with open(file_name_sufix + f"/test_krone_restricted_training_value_{restriction}.txt",
-                              "a") as f:
-                        f.write(f"{eval}\n")
+                    if record:
+                        with open(file_name_sufix + f"/loss_krone_restricted_training_value_{restriction}.txt", "a") as f:
+                            f.write(f"{item}\n")
+                        eval = evaluate_model(self, None, iter_testloader, partial=True)
+                        with open(file_name_sufix + f"/test_krone_restricted_training_value_{restriction}.txt",
+                                  "a") as f:
+                            f.write(f"{eval}\n")
                     if i_data % 200 == 199:  # print every 2000 mini-batches
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i_data + 1, running_loss / 200))
@@ -816,7 +857,6 @@ def get_inverted_mask(model):
     if not hasattr(model, "buffers"):
         RuntimeError("Model must have been pruned in order to get inverted mask")
     params = list(model.buffers())
-    # suma = torch.tensor(0,device=model.device)
     mascara = []
     for param in params:
         temp = (param == 0).type(torch.double).detach().clone()
@@ -1165,22 +1205,23 @@ if __name__ == '__main__':
     ###################################################################################################################
     # Train  small networks with less convolutional layers and trained with KFAC . Also trained bigger network with SGD
     small_model = NewSmallNet()
+    path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
+    from sam import SAM
     # l = NewNet()
     # x,y = next(iter(trainloader))
-    optimizer = KFACOptimizer(small_model,lr=0.001,momentum=0.5)
-    training(small_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_small",epochs=10,distance=0,
+    optimizer = SAM(small_model.parameters(),optim.SGD,lr=0.01,momentum=0.9)
+    training(small_model,trainloader,testloader,optimizer,path_colab,surname="SAM_conv_small",epochs=10,distance=0,
              mask=None)
     # torch.save(model.state_dict(), f"model_big_trained_KAFC")
 
 
-
-    big_model = NewNet()
-    optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
-    training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
-             mask=None)
-
-    big_model = NewNet()
-    optimizer = KFACOptimizer(big_model,lr=0.001,momentum=0.5)
-    training(big_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_big" ,epochs=10,distance=0,
-             mask=None)
-
+    #
+    # big_model = NewNet()
+    # optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
+    # training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
+    #          mask=None)
+    #
+    # big_model = NewNet()
+    # optimizer = KFACOptimizer(big_model,lr=0.001,momentum=0.5)
+    # training(big_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_big" ,epochs=10,distance=0,
+    #          mask=None)
