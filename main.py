@@ -1020,6 +1020,35 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i + 1, running_loss / 200))
                         running_loss = 0.0
+                elif isinstance(optimizer,SAM):
+
+
+                    # first forward-backward step
+                    predictions = net(inputs)
+                    loss = criterion(predictions, labels)
+                    loss.backward()
+                    item_ = loss.item()
+                    optimizer.first_step(zero_grad=True)
+
+                    # second forward-backward step
+                    criterion(net(inputs),labels).backward()
+                    optimizer.second_step(zero_grad=True)
+                    # print statistics
+                    running_loss += item_
+                    with open(file_name_sufix + f"/loss_training_{surname}.txt", "a") as f:
+                        f.write(f"{item_}\n")
+                    eval = evaluate_model(net, None, iter_testloader, partial=True)
+                    with open(file_name_sufix + f"/test_training_{surname}.txt", "a") as f:
+                        f.write(f"{eval}\n")
+                    if i % 200 == 199:  # print every 200 mini-batches
+                        print('[%d, %5d] loss: %.3f' %
+                              (epoch + 1, i + 1, running_loss / 200))
+                        running_loss = 0.0
+
+
+
+
+
                 else:
                     # forward + backward + optimize
                     outputs = net(inputs)
