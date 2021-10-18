@@ -190,15 +190,21 @@ if __name__ == '__main__':
     # distances = [0]
     # for i in distances:
     #     histogram_of_model(i)
-    names = ["traces/loss_training_KFAC_small.txt","traces/loss_training_SGD_big.txt",
-             "traces/loss_training_SGD_small.txt",
-             "traces/loss_training_KFAC_big.txt"]
-    legend = ["KFAC small network","SGD large network","SGD large network","KFAC large network"]
-    plot_list(names,legend,"Loss for CIFAR10")
+    # names = ["traces/loss_training_KFAC_small.txt","traces/loss_training_SGD_big.txt",
+    #          "traces/loss_training_SGD_small.txt",
+    #          "traces/loss_training_KFAC_big.txt"]
+    # legend = ["KFAC small network","SGD large network","SGD large network","KFAC large network"]
+    # plot_list(names,legend,"Loss for CIFAR10")
+    #
+    #
+    # names = ["traces/test_training_KFAC_small.txt","traces/test_training_SGD_big.txt",
+    #          "traces/test_training_SGD_small.txt",
+    #         "traces/test_training_KFAC_big.txt"]
+    # legend = ["KFAC small network","SGD large network","SGD small network","KFAC large network"]
+    # plot_list(names,legend,"Test accuracy for CIFAR10")
+    names = ["traces/loss_training_SGD_conv_big.txt","traces/loss_training_KFAC_conv_big.txt","traces/loss_training_KFAC_conv_small.txt"]
+    legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet"]
+    plot_list(names,legend,"Loss function for CIFAR10")
 
-
-    names = ["traces/test_training_KFAC_small.txt","traces/test_training_SGD_big.txt",
-             "traces/test_training_SGD_small.txt",
-            "traces/test_training_KFAC_big.txt"]
-    legend = ["KFAC small network","SGD large network","SGD large network","KFAC large network"]
-    plot_list(names,legend,"Test accuracy for CIFAR10")
+    names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt","traces/test_training_KFAC_conv_small.txt"]
+    plot_list(names,legend,"Test Performance for CIFAR10")
