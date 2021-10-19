@@ -1241,16 +1241,25 @@ if __name__ == '__main__':
     optimizer = SAM(small_model.parameters(),optim.SGD,lr=0.01,momentum=0.9)
     training(small_model,trainloader,testloader,optimizer,path_colab,surname="SAM_conv_small",epochs=10,distance=0,
              mask=None)
-    # torch.save(model.state_dict(), f"model_big_trained_KAFC")
+    torch.save(small_model.state_dict(), path_colab+f"model_small_trained_SAM") small_model = NewSmallNet()
+    path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
+
+    optimizer = KFACOptimizer(small_model,lr=0.001,momentum=0.5)
+    training(small_model,trainloader,testloader,optimizer,path_colab,surname="SAM_conv_small",epochs=10,distance=0,
+             mask=None)
+    torch.save(small_model.state_dict(), path_colab+f"model_small_trained_KFAC")
 
 
-    #
-    # big_model = NewNet()
-    # optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
-    # training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
-    #          mask=None)
-    #
-    # big_model = NewNet()
-    # optimizer = KFACOptimizer(big_model,lr=0.001,momentum=0.5)
-    # training(big_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_big" ,epochs=10,distance=0,
-    #          mask=None)
+
+    big_model = NewNet()
+    optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
+    training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
+             mask=None)
+    torch.save(big_model.state_dict(), path_colab+f"model_big_trained_SGD")
+
+    big_model = NewNet()
+    optimizer = KFACOptimizer(big_model,lr=0.001,momentum=0.5)
+    training(big_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_big" ,epochs=10,distance=0,
+             mask=None)
+    torch.save(big_model.state_dict(), path_colab+f"model_big_trained_KFAC")
+

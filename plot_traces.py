@@ -202,9 +202,12 @@ if __name__ == '__main__':
     #         "traces/test_training_KFAC_big.txt"]
     # legend = ["KFAC small network","SGD large network","SGD small network","KFAC large network"]
     # plot_list(names,legend,"Test accuracy for CIFAR10")
-    names = ["traces/loss_training_SGD_conv_big.txt","traces/loss_training_KFAC_conv_big.txt","traces/loss_training_KFAC_conv_small.txt"]
-    legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet"]
+    names = ["traces/loss_training_SGD_conv_big.txt","traces/loss_training_KFAC_conv_big.txt",
+             "traces/loss_training_KFAC_conv_small.txt","traces/loss_training_SAM_conv_small.txt"]
+    legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet","SAM with small ConvNet"]
+
     plot_list(names,legend,"Loss function for CIFAR10")
 
-    names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt","traces/test_training_KFAC_conv_small.txt"]
+    names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt",
+             "traces/test_training_KFAC_conv_small.txt","traces/test_training_SAM_conv_small.txt"]
     plot_list(names,legend,"Test Performance for CIFAR10")
