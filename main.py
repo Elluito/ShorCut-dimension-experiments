@@ -1241,7 +1241,8 @@ if __name__ == '__main__':
     optimizer = SAM(small_model.parameters(),optim.SGD,lr=0.01,momentum=0.9)
     training(small_model,trainloader,testloader,optimizer,path_colab,surname="SAM_conv_small",epochs=10,distance=0,
              mask=None)
-    torch.save(small_model.state_dict(), path_colab+f"model_small_trained_SAM") small_model = NewSmallNet()
+    torch.save(small_model.state_dict(), path_colab+f"model_small_trained_SAM")
+    small_model = NewSmallNet()
     path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
 
     optimizer = KFACOptimizer(small_model,lr=0.001,momentum=0.5)
