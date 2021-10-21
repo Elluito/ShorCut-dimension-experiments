@@ -1144,13 +1144,18 @@ if __name__ == '__main__':
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
     batch_size = 32
-
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+    cluster = True
+    datapath = ""
+    if cluster:
+        datapath = "../nobackup/sclaam/data"
+    else:
+        datapath = "./data"
+    trainset = torchvision.datasets.CIFAR10(root=datapath, train=True,
                                             download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+    testset = torchvision.datasets.CIFAR10(root=datapath, train=False,
                                            download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                              shuffle=False, num_workers=1)
@@ -1266,6 +1271,7 @@ if __name__ == '__main__':
     # Train  small networks with less convolutional layers and trained with KFAC . Also trained bigger network with SGD
     # small_model = NewSmallNet()
     # bigmodel = NewNet()
+
     # path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
     # from sam import SAM
     # # l = NewNet()
@@ -1292,7 +1298,7 @@ if __name__ == '__main__':
     #
     small_model = NewSmallNet()
     optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
-    training(small_model, trainloader, testloader, optimizer,"traces", surname="SGD_conv_small", epochs=10,
+    training(small_model, trainloader, testloader, optimizer,path_colab, surname="SGD_conv_small", epochs=1,
              distance=0,
              mask=None)
     torch.save(small_model.state_dict(),f"model_small_trained_SGD")
