@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import time
 import json
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -911,7 +912,7 @@ def evaluate_model(model, dataset, iter_dataset, partial=False):
 
 
 def training(net, trainloader, testloader, optimizer, file_name_sufix, distance, mask, surname="", epochs=40,
-             regularize=False):
+             regularize=False,record_time=False,record_function_calls= False):
     import os
     try:
         os.mkdir(file_name_sufix)
@@ -984,6 +985,11 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
         criterion = nn.CrossEntropyLoss()
         net.cuda()
         net.ensure_device(device)
+        if record_function_calls:
+            open(file_name_sufix+"/function_call"+surname+".txt").close()
+        if record_time:
+            open(file_name_sufix+"/time"+surname+".txt").close()
+
         for epoch in range(epochs):  # loop over the dataset multiple times
             running_loss = 0.0
             for i, data in enumerate(trainloader, 0):
@@ -994,8 +1000,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                 # zero the parameter gradients
                 optimizer.zero_grad()
                 if isinstance(optimizer, KFACOptimizer):
+                    t0 = time.time_ns()
                     outputs = net(inputs)
                     loss = criterion(outputs, labels)
+
                     if optimizer.steps % optimizer.TCov == 0:
                         # compute true fisher
                         optimizer.acc_stats = True
@@ -1008,6 +1016,14 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                         optimizer.zero_grad()  # clear the gradient for computing true-fisher.
                     loss.backward()
                     optimizer.step()
+                    t1 = time.time_ns()
+                    if record_time:
+                        with open(file_name_sufix + "/time" + surname + ".txt","a") as f:
+                            f.write(str(t1-t0))
+                    if record_function_calls:
+                        with open(file_name_sufix + "/function_call" + surname + ".txt","a"):
+                            f.write("2")
+
                     item = loss.item()
                     running_loss += item
                     with open(file_name_sufix + f"/loss_training_{surname}.txt", "a") as f:
@@ -1022,7 +1038,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                         running_loss = 0.0
                 elif isinstance(optimizer,SAM):
 
-
+                    t0 = time.time_ns()
                     # first forward-backward step
                     predictions = net(inputs)
                     loss = criterion(predictions, labels)
@@ -1033,6 +1049,13 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     # second forward-backward step
                     criterion(net(inputs),labels).backward()
                     optimizer.second_step(zero_grad=True)
+                    t1 = time.time_ns()
+                    if record_time:
+                        with open(file_name_sufix + "/time" + surname + ".txt", "a") as f:
+                            f.write(str(t1 - t0))
+                    if record_function_calls:
+                        with open(file_name_sufix + "/function_call" + surname + ".txt", "a"):
+                            f.write("2")
                     # print statistics
                     running_loss += item_
                     with open(file_name_sufix + f"/loss_training_{surname}.txt", "a") as f:
@@ -1050,11 +1073,19 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
 
 
                 else:
+                    t0 = time.time_ns()
                     # forward + backward + optimize
                     outputs = net(inputs)
                     loss = criterion(outputs, labels)
                     loss.backward()
                     optimizer.step()
+                    t1 = time.time_ns()
+                    if record_time:
+                        with open(file_name_sufix + "/time" + surname + ".txt", "a") as f:
+                            f.write(str(t1 - t0))
+                    if record_function_calls:
+                        with open(file_name_sufix + "/function_call" + surname + ".txt", "a"):
+                            f.write("1")
                     # print statistics
                     item_ = loss.item()
                     running_loss += item_
