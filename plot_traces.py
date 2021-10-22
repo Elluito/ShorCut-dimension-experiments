@@ -28,6 +28,19 @@ def plot_list(list_of_names=[],legend=[],title=""):
     plt.yticks(fontsize=15)
     plt.show()
 
+def plot_list_with_x_axis(list_of_names=[],legend=[],x_axises =[],x_axis_name="",title=""):
+    plt.title(title, fontsize=20)
+    color = cm.rainbow(np.linspace(0, 1, len(list_of_names)))
+
+    for i, key in enumerate(list_of_names):
+        c = color[i]
+        x = running_mean(500,np.loadtxt(x_axises))
+        plt.plot(np.cumsum(x),running_mean(500, np.loadtxt(key)), c=c)
+    plt.legend(legend, prop={"size": 20})
+    plt.xticks(fontsize=15)
+    plt.xlabel(x_axis_name,fontsize=20)
+    plt.yticks(fontsize=15)
+    plt.show()
 
 
 def plot_traces():
