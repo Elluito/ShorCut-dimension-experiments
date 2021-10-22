@@ -1302,7 +1302,7 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Device used {device}")
     optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
-    training(small_model, trainloader, testloader, optimizer,path_colab, surname="SGD_conv_small", epochs=1,
+    training(small_model, trainloader, testloader, optimizer,"traces", surname="SGD_conv_small", epochs=1,
              distance=0,
              mask=None)
     torch.save(small_model.state_dict(),f"model_small_trained_SGD")
