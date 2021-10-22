@@ -1147,7 +1147,7 @@ if __name__ == '__main__':
     cluster = True
     datapath = ""
     if cluster:
-        datapath = "../nobackup/sclaam/data"
+        datapath = "/nobackup/sclaam/data"
     else:
         datapath = "./data"
     trainset = torchvision.datasets.CIFAR10(root=datapath, train=True,
@@ -1295,14 +1295,14 @@ if __name__ == '__main__':
     # training(big_model, trainloader, testloader, optimizer, path_colab, surname="SGD_conv_big", epochs=10, distance=0,
     #          mask=None)
     # torch.save(big_model.state_dict(), path_colab+f"model_big_trained_SGD")
-    #
+
     small_model = NewSmallNet()
     optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
     training(small_model, trainloader, testloader, optimizer,path_colab, surname="SGD_conv_small", epochs=1,
              distance=0,
              mask=None)
     torch.save(small_model.state_dict(),f"model_small_trained_SGD")
-    #
+
     # big_model = NewNet()
     # optimizer = KFACOptimizer(big_model,lr=0.001,momentum=0.5)
     # training(big_model,trainloader,testloader,optimizer,path_colab,surname="KFAC_conv_big" ,epochs=10,distance=0,
