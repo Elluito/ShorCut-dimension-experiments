@@ -1297,6 +1297,10 @@ if __name__ == '__main__':
     # torch.save(big_model.state_dict(), path_colab+f"model_big_trained_SGD")
 
     small_model = NewSmallNet()
+    print("I'M ABOUT TO BEGIN THE TRAINING")
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Device used {device}")
     optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
     training(small_model, trainloader, testloader, optimizer,path_colab, surname="SGD_conv_small", epochs=1,
              distance=0,
