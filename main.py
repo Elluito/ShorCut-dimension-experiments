@@ -1,8 +1,6 @@
 import matplotlib.pyplot as plt
 import time
 import json
-import tensorflow as tf
-import tensorflow_datasets as tfds
 import torch.nn as nn
 from torch.nn import Flatten
 from itertools import cycle
@@ -26,28 +24,6 @@ from KFAC_Pytorch.optimizers import KFACOptimizer
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-def custom_model_tensorflow(compile_=True, Wdecay=0):
-    model = tf.keras.Sequential([
-        tf.keras.Input([32, 32, 3]),
-        tf.keras.layers.Conv2D(filters=64, kernel_size=3, activation='relu', kernel_regularizer=l2(Wdecay)),
-        # tf.keras.layers.Conv2D(filters=64, kernel_size=3, activation='relu'),
-        tf.keras.layers.MaxPool2D(),
-        # tf.keras.layers.Conv2D(filters=128, kernel_size=3, activation='relu'),
-        tf.keras.layers.Conv2D(filters=128, kernel_size=3, activation='relu', kernel_regularizer=l2(Wdecay)),
-        tf.keras.layers.MaxPool2D(),
-        tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(516, activation='relu', kernel_regularizer=l2(Wdecay)),
-        tf.keras.layers.Dense(10, kernel_regularizer=l2(Wdecay))])
-    if compile_:
-        model.compile(optimizer=tf.keras.optimizers.SGD(lr=0.001, momentum=0.9),
-                      loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                      metrics=['accuracy'])
-
-    return model
-
-
 class ModelPytorch(torch.nn.Module):
     def __init__(self):
         """
