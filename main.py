@@ -19,7 +19,7 @@ from definitions import MaskedModule
 import torch.nn.utils.prune as prune
 import torch.nn.functional as F
 from KFAC_Pytorch.optimizers import KFACOptimizer
-
+from sam import  SAM
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
