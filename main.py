@@ -962,9 +962,9 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
         net.cuda()
         net.ensure_device(device)
         if record_function_calls:
-            open(file_name_sufix+"/function_call"+surname+".txt").close()
+            open(file_name_sufix+"/function_call_"+surname+".txt","w").close()
         if record_time:
-            open(file_name_sufix+"/time"+surname+".txt").close()
+            open(file_name_sufix+"/time_"+surname+".txt","w").close()
 
         for epoch in range(epochs):  # loop over the dataset multiple times
             running_loss = 0.0
