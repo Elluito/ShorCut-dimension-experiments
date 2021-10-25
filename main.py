@@ -995,10 +995,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     t1 = time.time_ns()
                     if record_time:
                         with open(file_name_sufix + "/time_" + surname + ".txt","a") as f:
-                            f.write(str(t1-t0))
+                            f.write(str(t1-t0)+"\n")
                     if record_function_calls:
                         with open(file_name_sufix + "/function_call_" + surname + ".txt","a") as f:
-                            f.write("2")
+                            f.write("2\n")
 
                     item = loss.item()
                     running_loss += item
@@ -1028,10 +1028,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     t1 = time.time_ns()
                     if record_time:
                         with open(file_name_sufix + "/time_" + surname + ".txt", "a") as f:
-                            f.write(str(t1 - t0))
+                            f.write(str(t1 - t0)+"\n")
                     if record_function_calls:
                         with open(file_name_sufix + "/function_call_" + surname + ".txt", "a") as f:
-                            f.write("2")
+                            f.write("2\n")
                     # print statistics
                     running_loss += item_
                     with open(file_name_sufix + f"/loss_training_{surname}.txt", "a") as f:
@@ -1251,6 +1251,7 @@ if __name__ == '__main__':
     ###################################################################################################################
     # Train  small networks with less convolutional layers and trained with KFAC . Also trained bigger network with SGD
     # path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Device used {device}")
     small_model = NewSmallNet()
@@ -1262,7 +1263,7 @@ if __name__ == '__main__':
     small_model = NewSmallNet()
 
     optimizer = KFACOptimizer(small_model,lr=0.001,momentum=0.5)
-    training(small_model,trainloader,testloader,optimizer,"traces",surname="SAM_conv_small",epochs=10,distance=0,
+    training(small_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_small",epochs=10,distance=0,
              mask=None, record_function_calls=True, record_time=True)
     torch.save(small_model.state_dict(), path_colab+f"model_small_trained_KFAC")
 
