@@ -994,10 +994,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     optimizer.step()
                     t1 = time.time_ns()
                     if record_time:
-                        with open(file_name_sufix + "/time" + surname + ".txt","a") as f:
+                        with open(file_name_sufix + "/time_" + surname + ".txt","a") as f:
                             f.write(str(t1-t0))
                     if record_function_calls:
-                        with open(file_name_sufix + "/function_call" + surname + ".txt","a"):
+                        with open(file_name_sufix + "/function_call_" + surname + ".txt","a") as f:
                             f.write("2")
 
                     item = loss.item()
@@ -1057,10 +1057,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     optimizer.step()
                     t1 = time.time_ns()
                     if record_time:
-                        with open(file_name_sufix + "/time" + surname + ".txt", "a") as f:
+                        with open(file_name_sufix + "/time_" + surname + ".txt", "a") as f:
                             f.write(str(t1 - t0))
                     if record_function_calls:
-                        with open(file_name_sufix + "/function_call" + surname + ".txt", "a"):
+                        with open(file_name_sufix + "/function_call_" + surname + ".txt", "a") as f:
                             f.write("1")
                     # print statistics
                     item_ = loss.item()
@@ -1110,22 +1110,14 @@ def test_against_original(dataset):
     dataframe.boxplot()
     plt.show()
 
+def load_CIFAR10(datapath,batch_size):
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    batch_size = 32
-    cluster = True
-    datapath = ""
-    if cluster:
-        datapath = "/nobackup/sclaam/data"
-    else:
-        datapath = "./data"
+
     trainset = torchvision.datasets.CIFAR10(root=datapath, train=True,
                                             download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
@@ -1134,8 +1126,21 @@ if __name__ == '__main__':
     testset = torchvision.datasets.CIFAR10(root=datapath, train=False,
                                            download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                             shuffle=False, num_workers=1)
+                                         shuffle=False, num_workers=2)
+    return trainloader,testloader
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    print_hi('PyCharm')
 
+
+    batch_size = 32
+    cluster = True
+    datapath = ""
+    if cluster:
+        datapath = "/nobackup/sclaam/data"
+    else:
+        datapath = "./data"
+    trainloader,testloader = load_CIFAR10(datapath,batch_size)
     classes = ('plane', 'car', 'bird', 'cat',
                'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     # net = Net()
