@@ -1030,7 +1030,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                         with open(file_name_sufix + "/time" + surname + ".txt", "a") as f:
                             f.write(str(t1 - t0))
                     if record_function_calls:
-                        with open(file_name_sufix + "/function_call" + surname + ".txt", "a"):
+                        with open(file_name_sufix + "/function_call" + surname + ".txt", "a") as f:
                             f.write("2")
                     # print statistics
                     running_loss += item_
