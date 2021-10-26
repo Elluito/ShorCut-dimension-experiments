@@ -24,6 +24,28 @@ class BigFullyC(nn.Module):
         y = self.fc5(x)
         return y
 
+    def parameters_to_prune(self):
+        layers = []
+        for module in self.modules():
+            if not isinstance(module,BigFullyC):
+                layers.append(module)
+        weights = ["weight"] * len(layers)
+        return list(zip(layers, weights))
+
+    def ensure_device(self, device):
+        for module in self.modules():
+            module.to(device)
+
+    def apply_mask(self, masks):
+        # masks = list(self.buffers())
+        i = 0
+        for (name, param) in self.named_parameters():
+            if 'bias' not in name:
+                param.data.mul_(masks[i].cuda())
+                i += 1
+        return True
+
+
 
 class SmallFullyC(nn.Module):
     def __init__(self, image_W, image_H, classes):
@@ -38,6 +60,28 @@ class SmallFullyC(nn.Module):
         x = self.fc2(x)
         y = self.fc3(x)
         return y
+
+    def parameters_to_prune(self):
+        layers = []
+        for module in self.modules():
+            if not isinstance(module,BigFullyC):
+                layers.append(module)
+        weights = ["weight"] * len(layers)
+        return list(zip(layers, weights))
+
+    def ensure_device(self, device):
+        for module in self.modules():
+            module.to(device)
+
+    def apply_mask(self, masks):
+        # masks = list(self.buffers())
+        i = 0
+        for (name, param) in self.named_parameters():
+            if 'bias' not in name:
+                param.data.mul_(masks[i].cuda())
+                i += 1
+        return True
+
 
 
 class SmallConv(nn.Module):
@@ -55,6 +99,28 @@ class SmallConv(nn.Module):
         x = x.view(-1, int(x.nelement() / x.shape[0]))
         y = self.fc1(x)
         return y
+
+    def parameters_to_prune(self):
+        layers = []
+        for module in self.modules():
+            if not isinstance(module,BigFullyC):
+                layers.append(module)
+        weights = ["weight"] * len(layers)
+        return list(zip(layers, weights))
+
+    def ensure_device(self, device):
+        for module in self.modules():
+            module.to(device)
+
+    def apply_mask(self, masks):
+        # masks = list(self.buffers())
+        i = 0
+        for (name, param) in self.named_parameters():
+            if 'bias' not in name:
+                param.data.mul_(masks[i].cuda())
+                i += 1
+        return True
+
 
 
 class BigConv(nn.Module):
@@ -79,6 +145,26 @@ class BigConv(nn.Module):
         x = x.view(-1, int(x.nelement() / x.shape[0]))
         y = self.fc1(x)
         return y
+    def parameters_to_prune(self):
+        layers = []
+        for module in self.modules():
+            if not isinstance(module,BigConv):
+                layers.append(module)
+        weights = ["weight"] * len(layers)
+        return list(zip(layers, weights))
+
+    def ensure_device(self, device):
+        for module in self.modules():
+                module.to(device)
+
+    def apply_mask(self, masks):
+        # masks = list(self.buffers())
+        i = 0
+        for (name, param) in self.named_parameters():
+            if 'bias' not in name:
+                param.data.mul_(masks[i].cuda())
+                i += 1
+        return True
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 from ignite.metrics import Accuracy
 import torch
 from hessian_eigenthings import compute_hessian_eigenthings
+
 # from KFAC_Pytorch.optimizers.kfac import KFACOptimizer
 
 # Press Mayús+F10 to execute it or replace it with your code.
@@ -19,11 +20,14 @@ from definitions import MaskedModule
 import torch.nn.utils.prune as prune
 import torch.nn.functional as F
 from KFAC_Pytorch.optimizers import KFACOptimizer
-from sam import  SAM
+from sam import SAM
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+
+
 class ModelPytorch(torch.nn.Module):
     def __init__(self):
         """
@@ -650,19 +654,20 @@ class Net(nn.Module):
                 param.data.mul_(masks[i].cuda())
                 i += 1
         return True
-    def create_JSON(self,path_to_file):
-        ini = {}
-        for name,param in self.named_parameters():
-           if "bias" not in name:
-               ini.update({name:{}})
-        json.dump(ini, path_to_file)
-    def inspect_and_record_weigths(self,masks,path_to_file,iter,epoch):
-        i = 0
-        for name,param in self.named_parameters():
-            if "bias" not in name:
 
+    def create_JSON(self, path_to_file):
+        ini = {}
+        for name, param in self.named_parameters():
+            if "bias" not in name:
+                ini.update({name: {}})
+        json.dump(ini, path_to_file)
+
+    def inspect_and_record_weigths(self, masks, path_to_file, iter, epoch):
+        i = 0
+        for name , param in self.named_parameters():
+            if "bias" not in name:
                 weigth = param.data[masks[i].type(torch.BoolTensor)].detach().numpy().flatten()
-                new_data = {f"epoch {epoch}":{f"iter {iter}":weigth}}
+                new_data = {f"epoch {epoch}": {f"iter {iter}": weigth}}
                 with open(path_to_file, 'r+') as file:
                     # First we load existing data into a dict.
                     file_data = json.load(file)
@@ -673,19 +678,19 @@ class Net(nn.Module):
                     # convert back to json.
                     json.dump(file_data, file, indent=4)
 
-                i+=1
+                i += 1
 
     def inspect_and_record_gradients(self, masks, path_to_file):
         i = 0
         for name, param in self.named_parameters():
             if "bias" not in name:
                 grad = param.grad.data[masks[i].type(torch
-                                                  .BoolTensor)].detach().numpy()
+                                                     .BoolTensor)].detach().numpy()
                 string = str(grad).replace("[", "").replace("]", "")
                 string = ' '.join(string.split())
                 i += 1
         with open(path_to_file, "a") as f:
-                f.write(string + "\n")
+            f.write(string + "\n")
 
     def partial_grad(self, data, target, loss_function):
         """
@@ -715,7 +720,7 @@ class Net(nn.Module):
 
     def constricted_train(self, dataset, loss_function, n_epoch, learning_rate, momentum, iter_testloader,
                           file_name_sufix, inverse_mask,
-                          restriction, optimizer="SGD",record =True):
+                          restriction, optimizer="SGD", record=True):
         """
         Function to updated weights with a SVRG backpropagation
         args : dataset, loss function, number of epochs, learning rate
@@ -818,7 +823,8 @@ class Net(nn.Module):
                     item = loss.item()
                     running_loss += item
                     if record:
-                        with open(file_name_sufix + f"/loss_krone_restricted_training_value_{restriction}.txt", "a") as f:
+                        with open(file_name_sufix + f"/loss_krone_restricted_training_value_{restriction}.txt",
+                                  "a") as f:
                             f.write(f"{item}\n")
                         eval = evaluate_model(self, None, iter_testloader, partial=True)
                         with open(file_name_sufix + f"/test_krone_restricted_training_value_{restriction}.txt",
@@ -888,7 +894,7 @@ def evaluate_model(model, dataset, iter_dataset, partial=False):
 
 
 def training(net, trainloader, testloader, optimizer, file_name_sufix, distance, mask, surname="", epochs=40,
-             regularize=False,record_time=False,record_function_calls= False):
+             regularize=False, record_time=False, record_function_calls=False):
     import os
     try:
         os.mkdir(file_name_sufix)
@@ -962,9 +968,9 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
         net.cuda()
         net.ensure_device(device)
         if record_function_calls:
-            open(file_name_sufix+"/function_call_"+surname+".txt","w").close()
+            open(file_name_sufix + "/function_call_" + surname + ".txt", "w").close()
         if record_time:
-            open(file_name_sufix+"/time_"+surname+".txt","w").close()
+            open(file_name_sufix + "/time_" + surname + ".txt", "w").close()
 
         for epoch in range(epochs):  # loop over the dataset multiple times
             running_loss = 0.0
@@ -994,10 +1000,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     optimizer.step()
                     t1 = time.time_ns()
                     if record_time:
-                        with open(file_name_sufix + "/time_" + surname + ".txt","a") as f:
-                            f.write(str(t1-t0)+"\n")
+                        with open(file_name_sufix + "/time_" + surname + ".txt", "a") as f:
+                            f.write(str(t1 - t0) + "\n")
                     if record_function_calls:
-                        with open(file_name_sufix + "/function_call_" + surname + ".txt","a") as f:
+                        with open(file_name_sufix + "/function_call_" + surname + ".txt", "a") as f:
                             f.write("2\n")
 
                     item = loss.item()
@@ -1012,7 +1018,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i + 1, running_loss / 200))
                         running_loss = 0.0
-                elif isinstance(optimizer,SAM):
+                elif isinstance(optimizer, SAM):
 
                     t0 = time.time_ns()
                     # first forward-backward step
@@ -1023,12 +1029,12 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     optimizer.first_step(zero_grad=True)
 
                     # second forward-backward step
-                    criterion(net(inputs),labels).backward()
+                    criterion(net(inputs), labels).backward()
                     optimizer.second_step(zero_grad=True)
                     t1 = time.time_ns()
                     if record_time:
                         with open(file_name_sufix + "/time_" + surname + ".txt", "a") as f:
-                            f.write(str(t1 - t0)+"\n")
+                            f.write(str(t1 - t0) + "\n")
                     if record_function_calls:
                         with open(file_name_sufix + "/function_call_" + surname + ".txt", "a") as f:
                             f.write("2\n")
@@ -1110,13 +1116,11 @@ def test_against_original(dataset):
     dataframe.boxplot()
     plt.show()
 
-def load_CIFAR10(datapath,batch_size):
 
-
+def load_CIFAR10(datapath, batch_size):
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
 
     trainset = torchvision.datasets.CIFAR10(root=datapath, train=True,
                                             download=True, transform=transform)
@@ -1126,12 +1130,13 @@ def load_CIFAR10(datapath,batch_size):
     testset = torchvision.datasets.CIFAR10(root=datapath, train=False,
                                            download=True, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                         shuffle=False, num_workers=2)
-    return trainloader,testloader
+                                             shuffle=False, num_workers=2)
+    return trainloader, testloader
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     print_hi('PyCharm')
-
 
     batch_size = 32
     cluster = True
@@ -1140,7 +1145,7 @@ if __name__ == '__main__':
         datapath = "/nobackup/sclaam/data"
     else:
         datapath = "./data"
-    trainloader,testloader = load_CIFAR10(datapath,batch_size)
+    trainloader, testloader = load_CIFAR10(datapath, batch_size)
     classes = ('plane', 'car', 'bird', 'cat',
                'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     # net = Net()
@@ -1255,36 +1260,34 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Device used {device}")
     small_model = NewSmallNet()
-    optimizer = SAM(small_model.parameters(),optim.SGD,lr=0.01,momentum=0.9)
-    training(small_model,trainloader,testloader,optimizer,"traces",surname="SAM_conv_small",epochs=10,distance=0,
-                mask=None, record_function_calls=True, record_time=True)
+    optimizer = SAM(small_model.parameters(), optim.SGD, lr=0.01, momentum=0.9)
+    training(small_model, trainloader, testloader, optimizer, "traces", surname="SAM_conv_small", epochs=10, distance=0,
+             mask=None, record_function_calls=True, record_time=True)
     torch.save(small_model.state_dict(), f"model_small_trained_SAM")
 
     small_model = NewSmallNet()
 
-    optimizer = KFACOptimizer(small_model,lr=0.001,momentum=0.5)
-    training(small_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_small",epochs=10,distance=0,
+    optimizer = KFACOptimizer(small_model, lr=0.001, momentum=0.5)
+    training(small_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_small", epochs=10,
+             distance=0,
              mask=None, record_function_calls=True, record_time=True)
-    torch.save(small_model.state_dict(),f"model_small_trained_KFAC")
-
-
+    torch.save(small_model.state_dict(), f"model_small_trained_KFAC")
 
     big_model = NewNet()
     optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
     training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
-             mask = None, record_function_calls = True, record_time = True)
-    torch.save(big_model.state_dict(),f"model_big_trained_SGD")
+             mask=None, record_function_calls=True, record_time=True)
+    torch.save(big_model.state_dict(), f"model_big_trained_SGD")
 
     small_model = NewSmallNet()
     optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
-    training(small_model, trainloader, testloader, optimizer,"traces", surname="SGD_conv_small", epochs=10,
+    training(small_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_small", epochs=10,
              distance=0,
-             mask=None,record_function_calls=True,record_time=True)
-    torch.save(small_model.state_dict(),f"model_small_trained_SGD")
+             mask=None, record_function_calls=True, record_time=True)
+    torch.save(small_model.state_dict(), f"model_small_trained_SGD")
 
     big_model = NewNet()
-    optimizer = KFACOptimizer(big_model,lr=0.001,momentum=0.5)
-    training(big_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_big" ,epochs=10,distance=0,
-             mask=None,record_function_calls=True,record_time=True)
-    torch.save(big_model.state_dict(),f"model_big_trained_KFAC")
-
+    optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
+    training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
+             mask=None, record_function_calls=True, record_time=True)
+    torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
