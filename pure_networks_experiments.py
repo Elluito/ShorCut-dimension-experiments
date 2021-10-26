@@ -15,7 +15,7 @@ class BigFullyC(nn.Module):
         self.fc4 = nn.Linear(512, 256)
         self.fc5 = nn.Linear(256, classes)
 
-    def forward(self, x: torch.Tensor) -> T_co:
+    def forward(self, x: torch.Tensor) ->torch.Tensor:
         x = x.view(-1, int(x.nelement() / x.shape[0]))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
