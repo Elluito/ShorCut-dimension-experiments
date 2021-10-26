@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     # datapath = "/nobackup/sclaam/data"
     path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
-    treinloader, testloader = load_CIFAR10("./data")
+    treinloader, testloader = load_CIFAR10("./data",32)
     # TRAINING PURE FULLY CONNECTED
 
     # Small  FC net SGD optimizer
