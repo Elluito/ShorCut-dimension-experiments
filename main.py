@@ -1265,7 +1265,7 @@ if __name__ == '__main__':
     optimizer = KFACOptimizer(small_model,lr=0.001,momentum=0.5)
     training(small_model,trainloader,testloader,optimizer,"traces",surname="KFAC_conv_small",epochs=10,distance=0,
              mask=None, record_function_calls=True, record_time=True)
-    torch.save(small_model.state_dict(), path_colab+f"model_small_trained_KFAC")
+    torch.save(small_model.state_dict(),f"model_small_trained_KFAC")
 
 
 
@@ -1273,10 +1273,9 @@ if __name__ == '__main__':
     optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
     training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
              mask = None, record_function_calls = True, record_time = True)
-    torch.save(big_model.state_dict(), path_colab+f"model_big_trained_SGD")
+    torch.save(big_model.state_dict(),f"model_big_trained_SGD")
 
     small_model = NewSmallNet()
-
     optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
     training(small_model, trainloader, testloader, optimizer,"traces", surname="SGD_conv_small", epochs=10,
              distance=0,
