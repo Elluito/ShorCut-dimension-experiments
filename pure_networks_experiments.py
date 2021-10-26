@@ -90,7 +90,7 @@ class SmallConv(nn.Module):
         self.conv1 = nn.Conv2d(3, 64, 3)
         self.conv2 = nn.Conv2d(64, 128, 3)
         self.conv3 = nn.Conv2d(128, 256, 3)
-        self.fc1 = nn.Linear(2304, classes)
+        self.fc1 = nn.Linear(1024, classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
@@ -133,13 +133,13 @@ class BigConv(nn.Module):
         self.conv4 = nn.Conv2d(256, 512, 3, padding=(1, 1))
         self.conv5 = nn.Conv2d(512, 1024, 3)
 
-        self.fc1 = nn.Linear(9 * 1024, classes)
+        self.fc1 = nn.Linear(4096, classes)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = F.relu(self.conv1(x))
         x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
         x = F.relu(self.conv3(x))
-        x = F.max_pool2d(F.relu(self.conv3(x)), (2, 2))
+        x = F.max_pool2d(F.relu(x), (2, 2))
         x = F.relu(self.conv4(x))
         x = F.max_pool2d(F.relu(self.conv5(x)), (2, 2))
         x = x.view(-1, int(x.nelement() / x.shape[0]))
@@ -224,6 +224,10 @@ if __name__ == '__main__':
 
     # Small  CONV net SGD optimizer
     small = SmallConv(10)
+    big_temp = BigConv(10)
+    x,y = next(iter(trainloader))
+    small.forward(x)
+    big_temp.forward(x)
     optimizer = optim.SGD(small.parameters(), lr=0.001, momentum=0.9)
     training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SGD", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
