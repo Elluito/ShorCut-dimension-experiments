@@ -85,8 +85,9 @@ if __name__ == '__main__':
     from main import training, load_CIFAR10
     from KFAC_Pytorch.optimizers.kfac import KFACOptimizer
 
-    datapath = "/nobackup/sclaam/data"
-    treinloader, testloader = load_CIFAR10(datapath)
+    # datapath = "/nobackup/sclaam/data"
+    path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
+    treinloader, testloader = load_CIFAR10("./data")
     # TRAINING PURE FULLY CONNECTED
 
     # Small  FC net SGD optimizer
