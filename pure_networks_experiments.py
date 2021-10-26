@@ -9,7 +9,7 @@ class BigFullyC(nn.Module):
 
     def __init__(self, image_W, image_H, classes):
         super(BigFullyC, self).__init__()
-        self.fc1 = nn.Linear(image_W * image_H, 2048)
+        self.fc1 = nn.Linear(image_W * image_H*3, 2048)
         self.fc2 = nn.Linear(2048, 1024)
         self.fc3 = nn.Linear(1024, 512)
         self.fc4 = nn.Linear(512, 256)
@@ -50,7 +50,7 @@ class BigFullyC(nn.Module):
 class SmallFullyC(nn.Module):
     def __init__(self, image_W, image_H, classes):
         super(SmallFullyC, self).__init__()
-        self.fc1 = nn.Linear(image_W * image_H, 512)
+        self.fc1 = nn.Linear(image_W * image_H*3, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, classes)
 

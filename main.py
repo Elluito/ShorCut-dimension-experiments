@@ -1049,11 +1049,6 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i + 1, running_loss / 200))
                         running_loss = 0.0
-
-
-
-
-
                 else:
                     t0 = time.time_ns()
                     # forward + backward + optimize
