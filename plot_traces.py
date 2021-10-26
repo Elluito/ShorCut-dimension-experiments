@@ -28,6 +28,13 @@ def plot_list(list_of_names=[],legend=[],title=""):
     plt.yticks(fontsize=15)
     plt.show()
 
+def plot_mean_and_CI(t,mean, lb, ub, color_mean=None, color_shading=None,label=""):
+    # plot the shaded range of the confidence intervals
+    plt.fill_between(t, ub, lb,
+                     color=color_shading, alpha=.5)
+    # plot the mean on top
+    plt.plot(t,mean, c=color_mean,label=label)
+
 def plot_list_with_x_axis(list_of_names=[],legend=[],x_axises =[],x_axis_name="",title=""):
     plt.title(title, fontsize=20)
     color = cm.rainbow(np.linspace(0, 1, len(list_of_names)))

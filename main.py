@@ -1161,23 +1161,23 @@ if __name__ == '__main__':
     # torch.save(net.state_dict(), "model_trained_vanila_pruned")
     # model2 = ModelPytorch()
     # model2.cuda()
-    # model = Net()
-    # prune.global_unstructured(
-    #     model.parameters_to_prune(),
-    #     pruning_method=prune.L1Unstructured,
-    #     amount=count_parameters(net) // 2,
-    # )
-    # model.load_state_dict(torch.load("model_trained_vanila_pruned"))
-    # model.cuda()
-    # evaluate_model(model2,testloader,None)
-    # evaluate_model(model, testloader, None)
-    # mask = get_inverted_mask(model)
-    # k = 0
-    # buffers = list(model.buffers())
-    # for (name,module)in model2.named_modules():
-    #     if not isinstance(module,ModelPytorch) and not isinstance(module,nn.MaxPool2d):
-    #         module.set_masks(buffers[k])
-    #         k += 1
+    model = Net()
+    prune.global_unstructured(
+        model.parameters_to_prune(),
+        pruning_method=prune.L1Unstructured,
+        amount=count_parameters(net) // 2,
+    )
+    model.load_state_dict(torch.load("model_trained_vanila_pruned"))
+    model.cuda()
+    evaluate_model(model2,testloader,None)
+    evaluate_model(model, testloader, None)
+    mask = get_inverted_mask(model)
+    k = 0
+    buffers = list(model.buffers())
+    for (name,module)in model2.named_modules():
+        if not isinstance(module,ModelPytorch) and not isinstance(module,nn.MaxPool2d):
+            module.set_masks(buffers[k])
+            k += 1
     # Tainig with mask from the beginning: ###########################################################################
     # optimizer = optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
     # training(model2,trainloader,testloader,optimizer,"traces",epochs=10,distance=0,mask=None)
