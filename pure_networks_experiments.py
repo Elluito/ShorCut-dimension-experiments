@@ -9,13 +9,13 @@ class BigFullyC(nn.Module):
 
     def __init__(self, image_W, image_H, classes):
         super(BigFullyC, self).__init__()
-        self.fc1 = nn.Linear(image_W * image_H*3, 2048)
+        self.fc1 = nn.Linear(image_W * image_H * 3, 2048)
         self.fc2 = nn.Linear(2048, 1024)
         self.fc3 = nn.Linear(1024, 512)
         self.fc4 = nn.Linear(512, 256)
         self.fc5 = nn.Linear(256, classes)
 
-    def forward(self, x: torch.Tensor) ->torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = x.view(-1, int(x.nelement() / x.shape[0]))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
@@ -27,7 +27,7 @@ class BigFullyC(nn.Module):
     def parameters_to_prune(self):
         layers = []
         for module in self.modules():
-            if not isinstance(module,BigFullyC):
+            if not isinstance(module, BigFullyC):
                 layers.append(module)
         weights = ["weight"] * len(layers)
         return list(zip(layers, weights))
@@ -46,11 +46,10 @@ class BigFullyC(nn.Module):
         return True
 
 
-
 class SmallFullyC(nn.Module):
     def __init__(self, image_W, image_H, classes):
         super(SmallFullyC, self).__init__()
-        self.fc1 = nn.Linear(image_W * image_H*3, 512)
+        self.fc1 = nn.Linear(image_W * image_H * 3, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, classes)
 
@@ -64,7 +63,7 @@ class SmallFullyC(nn.Module):
     def parameters_to_prune(self):
         layers = []
         for module in self.modules():
-            if not isinstance(module,BigFullyC):
+            if not isinstance(module, BigFullyC):
                 layers.append(module)
         weights = ["weight"] * len(layers)
         return list(zip(layers, weights))
@@ -81,7 +80,6 @@ class SmallFullyC(nn.Module):
                 param.data.mul_(masks[i].cuda())
                 i += 1
         return True
-
 
 
 class SmallConv(nn.Module):
@@ -103,7 +101,7 @@ class SmallConv(nn.Module):
     def parameters_to_prune(self):
         layers = []
         for module in self.modules():
-            if not isinstance(module,BigFullyC):
+            if not isinstance(module, BigFullyC):
                 layers.append(module)
         weights = ["weight"] * len(layers)
         return list(zip(layers, weights))
@@ -120,7 +118,6 @@ class SmallConv(nn.Module):
                 param.data.mul_(masks[i].cuda())
                 i += 1
         return True
-
 
 
 class BigConv(nn.Module):
@@ -145,17 +142,18 @@ class BigConv(nn.Module):
         x = x.view(-1, int(x.nelement() / x.shape[0]))
         y = self.fc1(x)
         return y
+
     def parameters_to_prune(self):
         layers = []
         for module in self.modules():
-            if not isinstance(module,BigConv):
+            if not isinstance(module, BigConv):
                 layers.append(module)
         weights = ["weight"] * len(layers)
         return list(zip(layers, weights))
 
     def ensure_device(self, device):
         for module in self.modules():
-                module.to(device)
+            module.to(device)
 
     def apply_mask(self, masks):
         # masks = list(self.buffers())
@@ -173,7 +171,7 @@ if __name__ == '__main__':
 
     # datapath = "/nobackup/sclaam/data"
     # path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
-    trainloader, testloader = load_CIFAR10("./data",32)
+    trainloader, testloader = load_CIFAR10("./data", 32)
     # TRAINING PURE FULLY CONNECTED
     #
     # # Small  FC net SGD optimizer
@@ -241,7 +239,7 @@ if __name__ == '__main__':
     torch.save(big.state_dict(), f"CONV_big_SGD")
 
     # Small  CONV net SAM optimizer
-    small =SmallConv(10)
+    small = SmallConv(10)
     optimizer = SAM(small.parameters(), optim.SGD, lr=0.01, momentum=0.9)
     training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SAM", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
