@@ -1260,33 +1260,35 @@ if __name__ == '__main__':
     #          mask=None, record_function_calls=True, record_time=True)
     # torch.save(small_model.state_dict(), f"model_small_trained_KFAC")
     #
-    # big_model = NewNet()
-    # optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
-    # training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
-    #          mask=None, record_function_calls=True, record_time=True)
-    # torch.save(big_model.state_dict(), f"model_big_trained_SGD")
+    big_model = NewNet()
+    optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
+    training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
+             mask=None, record_function_calls=True, record_time=True)
+    torch.save(big_model.state_dict(), f"model_big_trained_SGD")
+
+    small_model = NewSmallNet()
+    optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
+    training(small_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_small", epochs=10,
+             distance=0,
+             mask=None, record_function_calls=True, record_time=True)
+    torch.save(small_model.state_dict(), f"model_small_trained_SGD")
     #
-    # small_model = NewSmallNet()
-    # optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
-    # training(small_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_small", epochs=10,
-    #          distance=0,
-    #          mask=None, record_function_calls=True, record_time=True)
-    # torch.save(small_model.state_dict(), f"model_small_trained_SGD")
-    #
-    # big_model = NewNet()
-    # optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
-    # training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
-    #          mask=None, record_function_calls=True, record_time=True)
-    # torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
-    net = Net()
-    prune.global_unstructured(
-        net.parameters_to_prune(),
-        pruning_method=prune.L1Unstructured,
-        amount=count_parameters(net) // 2,
-    )
-    net.load_state_dict(torch.load("model_trained_vanila_pruned"))
-    mask = get_inverted_mask(net)
-    net.create_JSON("test.json")
-    net.inspect_and_record_weigths(mask,"test.json",1,1)
+    big_model = NewNet()
+    optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
+    training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
+             mask=None, record_function_calls=True, record_time=True)
+    torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
+
+    # TRYING THINGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+    # net = Net()
+    # prune.global_unstructured(
+    #     net.parameters_to_prune(),
+    #     pruning_method=prune.L1Unstructured,
+    #     amount=count_parameters(net) // 2,
+    # )
+    # net.load_state_dict(torch.load("model_trained_vanila_pruned"))
+    # mask = get_inverted_mask(net)
+    # net.create_JSON("test.json")
+    # net.inspect_and_record_weigths(mask,"test.json",1,1)
 
 
