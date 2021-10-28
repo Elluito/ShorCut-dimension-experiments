@@ -219,17 +219,18 @@ if __name__ == '__main__':
     # plot_list(names,legend,"Loss for CIFAR10")
     #
     #
-    # names = ["traces/test_training_KFAC_small.txt","traces/test_training_SGD_big.txt",
-    #          "traces/test_training_SGD_small.txt",
-    #         "traces/test_training_KFAC_big.txt"]
-    # legend = ["KFAC small network","SGD large network","SGD small network","KFAC large network"]
-    # plot_list(names,legend,"Test accuracy for CIFAR10")
-    # names = ["traces/loss_training_SGD_conv_big.txt","traces/loss_training_KFAC_conv_big.txt",
-    #          "traces/loss_training_KFAC_conv_small.txt","traces/loss_training_SAM_conv_small.txt"]
+    names = ["pure_experiments/loss_training_CONV_small_KFAC.txt","pure_experiments/loss_training_CONV_small_SAM.txt", "pure_experiments/loss_training_CONV_small_SGD.txt","pure_experiments/loss_training_CONV_big_SGD.txt", "pure_experiments/loss_training_CONV_big_KFAC.txt"]
+    legend = ["KFAC small network","SAM small network","SGD small network","SGD large network","KFAC large network"]
+    plot_list(names,legend,"Loss function for CIFAR10 for CONV Network")
+
+
+
+    names = ["pure_experiments/test_training_CONV_small_KFAC.txt","pure_experiments/test_training_CONV_small_SAM.txt", "pure_experiments/test_training_CONV_small_SGD.txt","pure_experiments/test_training_CONV_big_SGD.txt", "pure_experiments/test_training_CONV_big_KFAC.txt"]
     # legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet","SAM with small ConvNet"]
-    #
-    # plot_list(names,legend,"Loss function for CIFAR10")
-    #
+
+    plot_list(names,legend,"Test accuracy for CIFAR10 for CONV Network")
+
+
     # names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt",
     #          "traces/test_training_KFAC_conv_small.txt","traces/test_training_SAM_conv_small.txt"]
 
@@ -240,16 +241,16 @@ if __name__ == '__main__':
     #          "traces2/loss_training_KFAC_big.txt"]
     # legend = ["KFAC small network", "SGD large network", "SGD large network", "KFAC large network"]
     # plot_list(names, legend, "Loss for CIFAR10")
-
-    names = ["traces2/test_training_KFAC_conv_small.txt", "traces2/test_training_SGD_conv_big.txt",
-             "traces2/test_training_SGD_conv_small.txt"]
-    # ,"traces2/test_training_KFAC_conv_big.txt"]
-    function_cals = ["traces2/function_call_KFAC_conv_small.txt", "traces2/function_calls_SGD_big.txt",
-                     "traces2/function_call_SGD_conv_small.txt", "trances2/function_call_SAM_conv_small.txt"]
-    # ,"traces2/test_training_KFAC_big.txt"]
-    time = ["traces2/time_KFAC_conv_small.txt", "traces2/time_SGD_conv_big.txt",
-            "traces2/time_SGD_conv_small.txt", "traces2/time_SAM_conv_small.txt"]
-    legend = ["KFAC small network", "SGD large network", "SGD small network", "SAM small network"]
-    l = np.loadtxt("traces2/time_KFAC_conv_small.txt")
-
-    plot_list_with_x_axis(names, legend, time, 1e9, "Computation time", "Test accuracy for CIFAR10")
+    #
+    # names = ["traces2/test_training_KFAC_conv_small.txt", "traces2/test_training_SGD_conv_big.txt",
+    #          "traces2/test_training_SGD_conv_small.txt"]
+    # # ,"traces2/test_training_KFAC_conv_big.txt"]
+    # function_cals = ["traces2/function_call_KFAC_conv_small.txt", "traces2/function_calls_SGD_big.txt",
+    #                  "traces2/function_call_SGD_conv_small.txt", "trances2/function_call_SAM_conv_small.txt"]
+    # # ,"traces2/test_training_KFAC_big.txt"]
+    # time = ["traces2/time_KFAC_conv_small.txt", "traces2/time_SGD_conv_big.txt",
+    #         "traces2/time_SGD_conv_small.txt", "traces2/time_SAM_conv_small.txt"]
+    # legend = ["KFAC small network", "SGD large network", "SGD small network", "SAM small network"]
+    # l = np.loadtxt("traces2/time_KFAC_conv_small.txt")
+    #
+    # plot_list_with_x_axis(names, legend, time, 1e9, "Computation time", "Test accuracy for CIFAR10")

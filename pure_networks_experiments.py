@@ -224,10 +224,10 @@ if __name__ == '__main__':
 
     # Small  CONV net SGD optimizer
     small = SmallConv(10)
-    big_temp = BigConv(10)
-    x,y = next(iter(trainloader))
-    small.forward(x)
-    big_temp.forward(x)
+    # big_temp = BigConv(10)
+    # x,y = next(iter(trainloader))
+    # small.forward(x)
+    # big_temp.forward(x)
     optimizer = optim.SGD(small.parameters(), lr=0.001, momentum=0.9)
     training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SGD", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     torch.save(big.state_dict(), f"CONV_big_SGD")
 
     # Small  CONV net SAM optimizer
-    small = BigConv(10)
+    small =SmallConv(10)
     optimizer = SAM(small.parameters(), optim.SGD, lr=0.01, momentum=0.9)
     training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SAM", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     torch.save(big.state_dict(), f"CONV_big_SAM")
 
     # Small CONV KFAC optimizer
-    small = BigConv(10)
+    small = SmallConv(10)
     optimizer = KFACOptimizer(small, lr=0.001, momentum=0.5)
     training(small, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_small_KFAC", epochs=10,
              distance=0,
