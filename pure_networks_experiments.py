@@ -221,6 +221,7 @@ if __name__ == '__main__':
     #
 
     # Small  CONV net SGD optimizer
+    print("SMALL CONV NET SGD")
     small = SmallConv(10)
     # big_temp = BigConv(10)
     # x,y = next(iter(trainloader))
@@ -232,6 +233,7 @@ if __name__ == '__main__':
     torch.save(small.state_dict(), f"CONV_small_SGD")
 
     # Big CONV net SGD optimizer
+    print("BIG CONV NET SGD")
     big = BigConv(10)
     optimizer = optim.SGD(big.parameters(), lr=0.001, momentum=0.9)
     training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_big_SGD", epochs=10,
@@ -239,6 +241,7 @@ if __name__ == '__main__':
     torch.save(big.state_dict(), f"CONV_big_SGD")
 
     # Small  CONV net SAM optimizer
+    print("SMALL CONV NET SAM")
     small = SmallConv(10)
     optimizer = SAM(small.parameters(), optim.SGD, lr=0.01, momentum=0.9)
     training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SAM", epochs=10,
@@ -246,6 +249,7 @@ if __name__ == '__main__':
     torch.save(small.state_dict(), f"CONV_small_SAM")
 
     # Big CONV net SAM optimizer
+    print("BIG CONV NET SAM")
     big = BigConv(10)
     optimizer = SAM(big.parameters(), optim.SGD, lr=0.01, momentum=0.9)
     training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_big_SAM", epochs=10,
@@ -253,6 +257,7 @@ if __name__ == '__main__':
     torch.save(big.state_dict(), f"CONV_big_SAM")
 
     # Small CONV KFAC optimizer
+    print("SMALL CONV NET KFAC")
     small = SmallConv(10)
     optimizer = KFACOptimizer(small, lr=0.001, momentum=0.5)
     training(small, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_small_KFAC", epochs=10,
@@ -261,6 +266,7 @@ if __name__ == '__main__':
     torch.save(small.state_dict(), f"CONV_small_KFAC")
 
     # Big model KFAC optimizer
+    print("BIG CONV NET KFAC")
     big = BigConv(10)
     optimizer = KFACOptimizer(big, lr=0.001, momentum=0.5)
     training(big, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_big_KFAC", epochs=10,
