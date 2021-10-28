@@ -21,7 +21,7 @@ import torch.nn.utils.prune as prune
 import torch.nn.functional as F
 from KFAC_Pytorch.optimizers import KFACOptimizer
 from sam import SAM
-
+import numpy as np
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -655,42 +655,33 @@ class Net(nn.Module):
                 i += 1
         return True
 
-    def create_JSON(self, path_to_file):
-        ini = {}
+    def create_folder(self, path_to_file):
+        prefix = "Net_model/"
         for name, param in self.named_parameters():
             if "bias" not in name:
-                ini.update({name: {}})
-        json.dump(ini, path_to_file)
+                try:
+                    os.mkdir(prefix+path_to_file+"/"+name)
+                except:
+                    pass
 
-    def inspect_and_record_weigths(self, masks, path_to_file, iter, epoch):
+        return prefix+path_to_file
+
+
+    def inspect_and_record_weigths(self, masks, path_to_file, iteration, epoch):
         i = 0
         for name , param in self.named_parameters():
             if "bias" not in name:
                 weigth = param.data[masks[i].type(torch.BoolTensor)].detach().numpy().flatten()
-                new_data = {f"epoch {epoch}": {f"iter {iter}": weigth}}
-                with open(path_to_file, 'r+') as file:
-                    # First we load existing data into a dict.
-                    file_data = json.load(file)
-                    # Join new_data with file_data inside emp_details
-                    file_data[name].update(new_data)
-                    # Sets file's current position at offset.
-                    file.seek(0)
-                    # convert back to json.
-                    json.dump(file_data, file, indent=4)
-
+                np.save(path_to_file+"/"+name+"/"+f"e{epoch}_i{iteration}",weigth)
                 i += 1
 
-    def inspect_and_record_gradients(self, masks, path_to_file):
+    def inspect_and_record_gradients(self, masks, path_to_file,iteration,epoch):
         i = 0
-        for name, param in self.named_parameters():
+        for name , param in self.named_parameters():
             if "bias" not in name:
-                grad = param.grad.data[masks[i].type(torch
-                                                     .BoolTensor)].detach().numpy()
-                string = str(grad).replace("[", "").replace("]", "")
-                string = ' '.join(string.split())
+                weigth = param.grad.data[masks[i].type(torch.BoolTensor)].detach().numpy().flatten()
+                np.save(path_to_file+"/"+name+"/"+f"e{epoch}_i{iteration}",weigth)
                 i += 1
-        with open(path_to_file, "a") as f:
-            f.write(string + "\n")
 
     def partial_grad(self, data, target, loss_function):
         """
@@ -971,7 +962,8 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
             open(file_name_sufix + "/function_call_" + surname + ".txt", "w").close()
         if record_time:
             open(file_name_sufix + "/time_" + surname + ".txt", "w").close()
-
+        open(file_name_sufix + f"/test_training_{surname}.txt","w").close()
+        open(file_name_sufix + f"/loss_training_{surname}.txt", "w").close()
         for epoch in range(epochs):  # loop over the dataset multiple times
             running_loss = 0.0
             for i, data in enumerate(trainloader, 0):
@@ -1059,10 +1051,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     t1 = time.time_ns()
                     if record_time:
                         with open(file_name_sufix + "/time_" + surname + ".txt", "a") as f:
-                            f.write(str(t1 - t0))
+                            f.write(str(t1 - t0)+"\n")
                     if record_function_calls:
                         with open(file_name_sufix + "/function_call_" + surname + ".txt", "a") as f:
-                            f.write("1")
+                            f.write("1\n")
                     # print statistics
                     item_ = loss.item()
                     running_loss += item_
@@ -1281,8 +1273,20 @@ if __name__ == '__main__':
     #          mask=None, record_function_calls=True, record_time=True)
     # torch.save(small_model.state_dict(), f"model_small_trained_SGD")
     #
-    big_model = NewNet()
-    optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
-    training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
-             mask=None, record_function_calls=True, record_time=True)
-    torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
+    # big_model = NewNet()
+    # optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
+    # training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
+    #          mask=None, record_function_calls=True, record_time=True)
+    # torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
+    net = Net()
+    prune.global_unstructured(
+        net.parameters_to_prune(),
+        pruning_method=prune.L1Unstructured,
+        amount=count_parameters(net) // 2,
+    )
+    net.load_state_dict(torch.load("model_trained_vanila_pruned"))
+    mask = get_inverted_mask(net)
+    net.create_JSON("test.json")
+    net.inspect_and_record_weigths(mask,"test.json",1,1)
+
+

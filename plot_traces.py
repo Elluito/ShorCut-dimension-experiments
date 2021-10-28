@@ -15,8 +15,8 @@ distances = []
 def running_mean(N, x):
     return np.convolve(x, np.ones((N,)) / N, mode='valid')
 
-def plot_list(list_of_names=[],legend=[],title=""):
 
+def plot_list(list_of_names=[], legend=[], title=""):
     plt.title(title, fontsize=20)
     color = cm.rainbow(np.linspace(0, 1, len(list_of_names)))
 
@@ -28,43 +28,44 @@ def plot_list(list_of_names=[],legend=[],title=""):
     plt.yticks(fontsize=15)
     plt.show()
 
-def plot_mean_and_CI(t,mean, lb, ub, color_mean=None, color_shading=None,label=""):
+
+def plot_mean_and_CI(t, mean, lb, ub, color_mean=None, color_shading=None, label=""):
     # plot the shaded range of the confidence intervals
     plt.fill_between(t, ub, lb,
                      color=color_shading, alpha=.5)
     # plot the mean on top
-    plt.plot(t,mean, c=color_mean,label=label)
+    plt.plot(t, mean, c=color_mean, label=label)
 
-def plot_list_with_x_axis(list_of_names=[],legend=[],x_axises =[],x_axis_name="",title=""):
+
+def plot_list_with_x_axis(list_of_names=[], legend=[], x_axises=[], normalizer=1, x_axis_name="", title=""):
     plt.title(title, fontsize=20)
     color = cm.rainbow(np.linspace(0, 1, len(list_of_names)))
 
     for i, key in enumerate(list_of_names):
         c = color[i]
-        x = running_mean(500,np.loadtxt(x_axises))
-        plt.plot(np.cumsum(x),running_mean(500, np.loadtxt(key)), c=c)
+        x = running_mean(500, np.loadtxt(x_axises[i])) / normalizer
+        plt.plot(np.cumsum(x), running_mean(500, np.loadtxt(key)), c=c)
     plt.legend(legend, prop={"size": 20})
     plt.xticks(fontsize=15)
-    plt.xlabel(x_axis_name,fontsize=20)
+    plt.xlabel(x_axis_name, fontsize=20)
     plt.yticks(fontsize=15)
     plt.show()
 
 
 def plot_traces():
-
     loss_regularized = {-2: np.loadtxt("traces/loss_normal_training.txt")}
     loss_regularized.update({-1: np.loadtxt("traces/loss_pruned_training.txt")})
     for file in gb.glob("traces/loss_restricted_training*"):
         temp = np.loadtxt(file)
 
-        distance = re.search("(?<=value\_)(.*?)(?=\.t)",file).group()
+        distance = re.search("(?<=value\_)(.*?)(?=\.t)", file).group()
         loss_regularized.update({float(distance): temp})
 
     test_regularized = {-2: np.loadtxt("traces/test_normal_training.txt")}
     test_regularized.update({-1: np.loadtxt("traces/test_pruned_training.txt")})
     for file in gb.glob("traces/test_restricted_training*"):
         temp = np.loadtxt(file)
-        distance = re.search("(?<=value\_)(.*?)(?=\.t)",file).group()
+        distance = re.search("(?<=value\_)(.*?)(?=\.t)", file).group()
         test_regularized.update({float(distance): temp})
 
         print(file)
@@ -73,7 +74,7 @@ def plot_traces():
     legend = []
     # distances.sort()
 
-    plt.title("Loss during training in CIFAR 10",fontsize=20)
+    plt.title("Loss during training in CIFAR 10", fontsize=20)
     color = cm.rainbow(np.linspace(0, 1, len(test_regularized.values())))
 
     for i, key in enumerate(sorted(loss_regularized)):
@@ -86,14 +87,14 @@ def plot_traces():
         elif key != -1 and key != -2:
             legend.append(f"$L=${key}")
     legend.append("Kronecker-pruned")
-    plt.plot(running_mean(500,np.loadtxt("traces/loss_krone_pruned_training.txt")),c="b")
-    plt.legend(legend,prop={"size":20})
+    plt.plot(running_mean(500, np.loadtxt("traces/loss_krone_pruned_training.txt")), c="b")
+    plt.legend(legend, prop={"size": 20})
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
     plt.figure()
 
     legend = []
-    plt.title("Accuracy in test set of CIFAR10",fontsize=20)
+    plt.title("Accuracy in test set of CIFAR10", fontsize=20)
 
     for i, key in enumerate(sorted(test_regularized)):
         c = color[i]
@@ -106,8 +107,8 @@ def plot_traces():
         elif key != -1 and key != -2:
             legend.append(f"$L=${key}")
     legend.append("Kronecker-pruned")
-    plt.plot(running_mean(500,np.loadtxt("traces/test_krone_pruned_training.txt")),c="b")
-    plt.legend(legend,prop={"size":20})
+    plt.plot(running_mean(500, np.loadtxt("traces/test_krone_pruned_training.txt")), c="b")
+    plt.legend(legend, prop={"size": 20})
     # plt.legend(legend)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
@@ -141,10 +142,11 @@ def histogram_of_model(number):
             j += 1
     fig, [ax1, ax2] = plt.subplots(1, 2, sharex=True)
     ax1.set_title("Weigths that belong to the mask")
-    ax1.hist(m_weigths,1000)
+    ax1.hist(m_weigths, 1000)
     ax2.set_title("Weigths that don't belong to the mask")
-    ax2.hist(no_m_weigths,1000)
+    ax2.hist(no_m_weigths, 1000)
     plt.savefig(f"Images/hitogram_model_l_{number}.jpg")
+
 
 def t_student_test(number):
     model = Net()
@@ -171,7 +173,7 @@ def t_student_test(number):
             no_m_weigths.extend(anti_thing.detach().numpy().flatten())
             j += 1
     from scipy import stats
-    stast_,p_value = stats.ttest_ind(m_weigths,no_m_weigths)
+    stast_, p_value = stats.ttest_ind(m_weigths, no_m_weigths)
     print(f"Model number {number}")
     print(f"T-Statistic: {stast_}")
     print(f"P-value: {p_value}")
@@ -210,18 +212,18 @@ if __name__ == '__main__':
     # distances = [0]
     # for i in distances:
     #     histogram_of_model(i)
-    names = ["traces/loss_training_KFAC_small.txt","traces/loss_training_SGD_big.txt",
-             "traces/loss_training_SGD_small.txt",
-             "traces/loss_training_KFAC_big.txt"]
-    legend = ["KFAC small network","SGD large network","SGD large network","KFAC large network"]
-    plot_list(names,legend,"Loss for CIFAR10")
-
-
-    names = ["traces/test_training_KFAC_small.txt","traces/test_training_SGD_big.txt",
-             "traces/test_training_SGD_small.txt",
-            "traces/test_training_KFAC_big.txt"]
-    legend = ["KFAC small network","SGD large network","SGD small network","KFAC large network"]
-    plot_list(names,legend,"Test accuracy for CIFAR10")
+    # names = ["traces/loss_training_KFAC_small.txt","traces/loss_training_SGD_big.txt",
+    #          "traces/loss_training_SGD_small.txt",
+    #          "traces/loss_training_KFAC_big.txt"]
+    # legend = ["KFAC small network","SGD large network","SGD large network","KFAC large network"]
+    # plot_list(names,legend,"Loss for CIFAR10")
+    #
+    #
+    # names = ["traces/test_training_KFAC_small.txt","traces/test_training_SGD_big.txt",
+    #          "traces/test_training_SGD_small.txt",
+    #         "traces/test_training_KFAC_big.txt"]
+    # legend = ["KFAC small network","SGD large network","SGD small network","KFAC large network"]
+    # plot_list(names,legend,"Test accuracy for CIFAR10")
     # names = ["traces/loss_training_SGD_conv_big.txt","traces/loss_training_KFAC_conv_big.txt",
     #          "traces/loss_training_KFAC_conv_small.txt","traces/loss_training_SAM_conv_small.txt"]
     # legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet","SAM with small ConvNet"]
@@ -230,3 +232,24 @@ if __name__ == '__main__':
     #
     # names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt",
     #          "traces/test_training_KFAC_conv_small.txt","traces/test_training_SAM_conv_small.txt"]
+
+    ############################################################################################
+    # FAIR COMPARISONS
+    # names = ["traces2/loss_training_KFAC_small.txt", "traces2/loss_training_SGD_big.txt",
+    #          "traces2/loss_training_SGD_small.txt",
+    #          "traces2/loss_training_KFAC_big.txt"]
+    # legend = ["KFAC small network", "SGD large network", "SGD large network", "KFAC large network"]
+    # plot_list(names, legend, "Loss for CIFAR10")
+
+    names = ["traces2/test_training_KFAC_conv_small.txt", "traces2/test_training_SGD_conv_big.txt",
+             "traces2/test_training_SGD_conv_small.txt"]
+    # ,"traces2/test_training_KFAC_conv_big.txt"]
+    function_cals = ["traces2/function_call_KFAC_conv_small.txt", "traces2/function_calls_SGD_big.txt",
+                     "traces2/function_call_SGD_conv_small.txt", "trances2/function_call_SAM_conv_small.txt"]
+    # ,"traces2/test_training_KFAC_big.txt"]
+    time = ["traces2/time_KFAC_conv_small.txt", "traces2/time_SGD_conv_big.txt",
+            "traces2/time_SGD_conv_small.txt", "traces2/time_SAM_conv_small.txt"]
+    legend = ["KFAC small network", "SGD large network", "SGD small network", "SAM small network"]
+    l = np.loadtxt("traces2/time_KFAC_conv_small.txt")
+
+    plot_list_with_x_axis(names, legend, time, 1e9, "Computation time", "Test accuracy for CIFAR10")
