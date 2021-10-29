@@ -173,103 +173,103 @@ if __name__ == '__main__':
     # path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
     trainloader, testloader = load_CIFAR10("./data", 32)
     # TRAINING PURE FULLY CONNECTED
-    #
-    # # Small  FC net SGD optimizer
-    # small = SmallFullyC(32, 32, 10)
-    # optimizer = optim.SGD(small.parameters(), lr=0.001, momentum=0.9)
-    # training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_small_SGD", epochs=10,
-    #          regularize=False, record_time=True, record_function_calls=True)
-    # torch.save(small.state_dict(), f"FC_small_SGD")
-    # # Big FC net SGD optimizer
-    # big = BigFullyC(32, 32, 10)
-    # optimizer = optim.SGD(big.parameters(), lr=0.001, momentum=0.9)
-    # training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_big_SGD", epochs=10,
-    #          regularize=False, record_time=True, record_function_calls=True)
-    # torch.save(big.state_dict(), f"FC_big_SGD")
-    #
-    # # Small  FC net SAM optimizer
-    # small = SmallFullyC(32, 32, 10)
-    # optimizer = SAM(small.parameters(), optim.SGD, lr=0.01, momentum=0.9)
-    # training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_small_SAM", epochs=10,
-    #          regularize=False, record_time=True, record_function_calls=True)
-    # torch.save(small.state_dict(), f"FC_small_SAM")
-    #
-    # # Big FC net SAM optimizer
-    # big = BigFullyC(32, 32, 10)
-    # optimizer = SAM(big.parameters(), optim.SGD, lr=0.01, momentum=0.9)
-    # training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_big_SAM", epochs=10,
-    #          regularize=False, record_time=True, record_function_calls=True)
-    # torch.save(big.state_dict(), f"FC_big_SAM")
-    #
-    # # Small model KFAC optimizer
-    # small = SmallFullyC(32, 32, 10)
-    # optimizer = KFACOptimizer(small, lr=0.001, momentum=0.5)
-    # training(small, trainloader, testloader, optimizer, "pure_experiments", surname="FC_small_KFAC", epochs=10,
-    #          distance=0,
-    #          mask=None, record_function_calls=True, record_time=True)
-    # torch.save(small.state_dict(), f"FC_small_KFAC")
-    #
-    # # Big model KFAC optimizer
-    # big = BigFullyC(32, 32, 10)
-    # optimizer = KFACOptimizer(big, lr=0.001, momentum=0.5)
-    # training(big, trainloader, testloader, optimizer, "pure_experiments", surname="FC_big_KFAC", epochs=10,
-    #          distance=0,
-    #          mask=None, record_function_calls=True, record_time=True)
-    # torch.save(big.state_dict(), f"FC_big_KFAC")
-    ############################################################################################################
-    # NOW THE SAME EXACT EXPERIMENTS BUT WITH CONVOLUTIONAL NETWORK ONLY.
-    #
 
-    # Small  CONV net SGD optimizer
-    print("SMALL CONV NET SGD")
-    small = SmallConv(10)
-    # big_temp = BigConv(10)
-    # x,y = next(iter(trainloader))
-    # small.forward(x)
-    # big_temp.forward(x)
+    # Small  FC net SGD optimizer
+    small = SmallFullyC(32, 32, 10)
     optimizer = optim.SGD(small.parameters(), lr=0.001, momentum=0.9)
-    training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SGD", epochs=10,
+    training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_small_SGD", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
-    torch.save(small.state_dict(), f"CONV_small_SGD")
-
-    # Big CONV net SGD optimizer
-    print("BIG CONV NET SGD")
-    big = BigConv(10)
+    torch.save(small.state_dict(), f"FC_small_SGD")
+    # Big FC net SGD optimizer
+    big = BigFullyC(32, 32, 10)
     optimizer = optim.SGD(big.parameters(), lr=0.001, momentum=0.9)
-    training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_big_SGD", epochs=10,
+    training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_big_SGD", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
-    torch.save(big.state_dict(), f"CONV_big_SGD")
+    torch.save(big.state_dict(), f"FC_big_SGD")
 
-    # Small  CONV net SAM optimizer
-    print("SMALL CONV NET SAM")
-    small = SmallConv(10)
+    # Small  FC net SAM optimizer
+    small = SmallFullyC(32, 32, 10)
     optimizer = SAM(small.parameters(), optim.SGD, lr=0.01, momentum=0.9)
-    training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SAM", epochs=10,
+    training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_small_SAM", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
-    torch.save(small.state_dict(), f"CONV_small_SAM")
+    torch.save(small.state_dict(), f"FC_small_SAM")
 
-    # Big CONV net SAM optimizer
-    print("BIG CONV NET SAM")
-    big = BigConv(10)
+    # Big FC net SAM optimizer
+    big = BigFullyC(32, 32, 10)
     optimizer = SAM(big.parameters(), optim.SGD, lr=0.01, momentum=0.9)
-    training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_big_SAM", epochs=10,
+    training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "FC_big_SAM", epochs=10,
              regularize=False, record_time=True, record_function_calls=True)
-    torch.save(big.state_dict(), f"CONV_big_SAM")
+    torch.save(big.state_dict(), f"FC_big_SAM")
 
-    # Small CONV KFAC optimizer
-    print("SMALL CONV NET KFAC")
-    small = SmallConv(10)
+    # Small model KFAC optimizer
+    small = SmallFullyC(32, 32, 10)
     optimizer = KFACOptimizer(small, lr=0.001, momentum=0.5)
-    training(small, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_small_KFAC", epochs=10,
+    training(small, trainloader, testloader, optimizer, "pure_experiments", surname="FC_small_KFAC", epochs=10,
              distance=0,
              mask=None, record_function_calls=True, record_time=True)
-    torch.save(small.state_dict(), f"CONV_small_KFAC")
+    torch.save(small.state_dict(), f"FC_small_KFAC")
 
     # Big model KFAC optimizer
-    print("BIG CONV NET KFAC")
-    big = BigConv(10)
+    big = BigFullyC(32, 32, 10)
     optimizer = KFACOptimizer(big, lr=0.001, momentum=0.5)
-    training(big, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_big_KFAC", epochs=10,
+    training(big, trainloader, testloader, optimizer, "pure_experiments", surname="FC_big_KFAC", epochs=10,
              distance=0,
              mask=None, record_function_calls=True, record_time=True)
-    torch.save(big.state_dict(), f"CONV_big_KFAC")
+    torch.save(big.state_dict(), f"FC_big_KFAC")
+    ############################################################################################################
+    # NOW THE SAME EXACT EXPERIMENTS BUT WITH CONVOLUTIONAL NETWORK ONLY.
+    # #
+    #
+    # # Small  CONV net SGD optimizer
+    # print("SMALL CONV NET SGD")
+    # small = SmallConv(10)
+    # # big_temp = BigConv(10)
+    # # x,y = next(iter(trainloader))
+    # # small.forward(x)
+    # # big_temp.forward(x)
+    # optimizer = optim.SGD(small.parameters(), lr=0.001, momentum=0.9)
+    # training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SGD", epochs=10,
+    #          regularize=False, record_time=True, record_function_calls=True)
+    # torch.save(small.state_dict(), f"CONV_small_SGD")
+    #
+    # # Big CONV net SGD optimizer
+    # print("BIG CONV NET SGD")
+    # big = BigConv(10)
+    # optimizer = optim.SGD(big.parameters(), lr=0.001, momentum=0.9)
+    # training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_big_SGD", epochs=10,
+    #          regularize=False, record_time=True, record_function_calls=True)
+    # torch.save(big.state_dict(), f"CONV_big_SGD")
+    #
+    # # Small  CONV net SAM optimizer
+    # print("SMALL CONV NET SAM")
+    # small = SmallConv(10)
+    # optimizer = SAM(small.parameters(), optim.SGD, lr=0.01, momentum=0.9)
+    # training(small, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_small_SAM", epochs=10,
+    #          regularize=False, record_time=True, record_function_calls=True)
+    # torch.save(small.state_dict(), f"CONV_small_SAM")
+    #
+    # # Big CONV net SAM optimizer
+    # print("BIG CONV NET SAM")
+    # big = BigConv(10)
+    # optimizer = SAM(big.parameters(), optim.SGD, lr=0.01, momentum=0.9)
+    # training(big, trainloader, testloader, optimizer, "pure_experiments", 0, None, "CONV_big_SAM", epochs=10,
+    #          regularize=False, record_time=True, record_function_calls=True)
+    # torch.save(big.state_dict(), f"CONV_big_SAM")
+    #
+    # # Small CONV KFAC optimizer
+    # print("SMALL CONV NET KFAC")
+    # small = SmallConv(10)
+    # optimizer = KFACOptimizer(small, lr=0.001, momentum=0.5)
+    # training(small, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_small_KFAC", epochs=10,
+    #          distance=0,
+    #          mask=None, record_function_calls=True, record_time=True)
+    # torch.save(small.state_dict(), f"CONV_small_KFAC")
+    #
+    # # Big model KFAC optimizer
+    # print("BIG CONV NET KFAC")
+    # big = BigConv(10)
+    # optimizer = KFACOptimizer(big, lr=0.001, momentum=0.5)
+    # training(big, trainloader, testloader, optimizer, "pure_experiments", surname="CONV_big_KFAC", epochs=10,
+    #          distance=0,
+    #          mask=None, record_function_calls=True, record_time=True)
+    # torch.save(big.state_dict(), f"CONV_big_KFAC")

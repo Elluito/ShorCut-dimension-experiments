@@ -1273,6 +1273,7 @@ if __name__ == '__main__':
              mask=None, record_function_calls=True, record_time=True)
     torch.save(small_model.state_dict(), f"model_small_trained_SGD")
     #
+
     big_model = NewNet()
     optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
     training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
