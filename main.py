@@ -1,14 +1,18 @@
+import glob
+import re
 import matplotlib.pyplot as plt
 import time
 import json
 import torch.nn as nn
 from torch.nn import Flatten
+import os
 from itertools import cycle
 import torchvision
 import torchvision.transforms as transforms
 from ignite.metrics import Accuracy
 import torch
 from hessian_eigenthings import compute_hessian_eigenthings
+from torch.nn import Parameter
 
 # from KFAC_Pytorch.optimizers.kfac import KFACOptimizer
 
@@ -22,6 +26,7 @@ import torch.nn.functional as F
 from KFAC_Pytorch.optimizers import KFACOptimizer
 from sam import SAM
 import numpy as np
+
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
@@ -616,23 +621,58 @@ class SmallNet(nn.Module):
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i_data + 1, running_loss / 200))
                         running_loss = 0.0
-
+def rename_attribute(object_, old_attribute_name, new_attribute_name):
+    setattr(object_, new_attribute_name, getattr(object_, old_attribute_name))
+    delattr(object_, old_attribute_name)
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         # 1 input image channel, 6 output channels, 3x3 square conv kernel
         self.conv1 = nn.Conv2d(3, 64, 3)
+        rename_attribute(self.conv1,"weight","weight_orig")
+        self.conv1.register_buffer("weight_mask",torch.ones_like(self.conv1.weight_orig.clone()))
+        # self.conv1.register_buffer("conv1_mask",torch.ones_like(self.conv1.weight.clone()))
         self.conv2 = nn.Conv2d(64, 128, 3)
+        rename_attribute(self.conv2,"weight","weight_orig")
+        self.conv2.register_buffer("weight_mask",torch.ones_like(self.conv2.weight_orig.clone()))
+        # self.conv2.register_buffer("conv2_mask",torch.ones_like(self.conv2.weight.clone()))
         self.fc1 = nn.Linear(4608, 516)
+        rename_attribute(self.fc1,"weight","weight_orig")
+        self.fc1.register_buffer("weight_mask",torch.ones_like(self.fc1.weight_orig.clone()))
+        # self.fc1.register_buffer("w_mask",torch.ones_like(self.fc1.weight.clone()))
         self.fc2 = nn.Linear(516, 10)
+        rename_attribute(self.fc2,"weight","weight_orig")
+        self.fc2.register_buffer("weight_mask",torch.ones_like(self.fc2.weight_orig.clone()))
+        # self.fc2.register_parameter("weigth_mask",nn.Parameter(torch.ones_like(self.fc2.weight.clone())))
 
+        # model_dict = model.state_dict()
+        #
+        # # 1. filter out unnecessary keys
+        # pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+        # # 2. overwrite entries in the existing state dict
+        # model_dict.update(pretrained_dict)
+        # # 3. load the new state dict
+        # model.load_state_dict(pretrained_dict)
+
+    def load_my_state_dict(self, state_dict):
+
+        own_state = self.state_dict()
+        for name, param in state_dict.items():
+            if name not in own_state:
+                continue
+            if isinstance(param, Parameter):
+                # backwards compatibility for serialized parameters
+                param = param.data
+            print(f"name {name}")
+            own_state[name].copy_(param)
     def forward(self, x):
-        x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        x = F.max_pool2d(F.relu(self.conv2(x)), 2)
+        x = F.max_pool2d(F.relu(F.conv2d(x,self.conv1.weight_orig,self.conv1.bias,self.conv1.stride,
+                                         self.conv1.padding,self.conv1.dilation,self.conv1.groups)),(2, 2))
+        x = F.max_pool2d(F.relu(F.conv2d(x,self.conv2.weight_orig,self.conv2.bias,self.conv2.stride, self.conv2.padding,self.conv2.dilation,self.conv2.groups)), 2)
         x = x.view(-1, int(x.nelement() / x.shape[0]))
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = F.relu(F.linear(x,self.fc1.weight_orig,self.fc1.bias))
+        x = F.linear(x,self.fc2.weight_orig,self.fc2.bias)
         return x
 
     def parameters_to_prune(self):
@@ -650,37 +690,49 @@ class Net(nn.Module):
         # masks = list(self.buffers())
         i = 0
         for (name, param) in self.named_parameters():
-            if 'bias' not in name:
+            if 'bias' not  in name:
                 param.data.mul_(masks[i].cuda())
                 i += 1
         return True
+    def apply_mask_plus_noise(self, masks,inverse_mask,noise,device):
+        # masks = list(self.buffers())
+        i = 0
+        for (name, param) in self.named_parameters():
+            if 'bias' not in name:
+                desired_shape = param.data.shape
+                thing = noise * torch.ones(desired_shape, device=device)
+                thing = thing.mul(inverse_mask[i].cuda())
+                param.data.mul_(masks[i].cuda()).add_(thing)
+                i += 1
+        return True
 
-    def create_folder(self, path_to_file):
-        prefix = "Net_model/"
+    def create_folder(self, path_to_file=""):
+        prefix = f"{type(self).__name__}_model/"
         for name, param in self.named_parameters():
             if "bias" not in name:
                 try:
-                    os.mkdir(prefix+path_to_file+"/"+name)
+                    os.makedirs(prefix + path_to_file + "/" + name.replace(".", "_")
+                                + "/")
                 except:
-                    pass
+                    thing = prefix + path_to_file + "/" + name.replace(".", "_")
+                    print(f"The directory {thing} already exist!!!!")
+        return prefix + path_to_file
 
-        return prefix+path_to_file
-
-
-    def inspect_and_record_weigths(self, masks, path_to_file, iteration, epoch):
+    def inspect_and_record_weigths(self, masks, path_to_file, epoch ,iteration):
         i = 0
-        for name , param in self.named_parameters():
+        for name, param in self.named_parameters():
             if "bias" not in name:
-                weigth = param.data[masks[i].type(torch.BoolTensor)].detach().numpy().flatten()
-                np.save(path_to_file+"/"+name+"/"+f"e{epoch}_i{iteration}",weigth)
+                weigth = param.data[masks[i].type(torch.BoolTensor)].clone().cpu().detach().numpy().flatten()
+                np.save(path_to_file + "/" + name.replace(".", "_") + f"/weigth_e{epoch}_i{iteration}", weigth)
+
                 i += 1
 
-    def inspect_and_record_gradients(self, masks, path_to_file,iteration,epoch):
+    def inspect_and_record_gradients(self, masks, path_to_file, epoch ,iteration):
         i = 0
-        for name , param in self.named_parameters():
+        for name, param in self.named_parameters():
             if "bias" not in name:
-                weigth = param.grad.data[masks[i].type(torch.BoolTensor)].detach().numpy().flatten()
-                np.save(path_to_file+"/"+name+"/"+f"e{epoch}_i{iteration}",weigth)
+                weigth = param.grad.data[masks[i].type(torch.BoolTensor)].clone().cpu().detach().numpy().flatten()
+                np.save(path_to_file + "/" + name.replace(".", "_") + f"/gradient_e{epoch}_i{iteration}", weigth)
                 i += 1
 
     def partial_grad(self, data, target, loss_function):
@@ -885,7 +937,8 @@ def evaluate_model(model, dataset, iter_dataset, partial=False):
 
 
 def training(net, trainloader, testloader, optimizer, file_name_sufix, distance, mask, surname="", epochs=40,
-             regularize=False, record_time=False, record_function_calls=False):
+             regularize=False, record_time=False, record_function_calls=False,record_weigths=False,
+             record_gradients=False):
     import os
     try:
         os.mkdir(file_name_sufix)
@@ -957,12 +1010,15 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
         import torch.optim as optim
         criterion = nn.CrossEntropyLoss()
         net.cuda()
+        root_folder = ""
+        if record_weigths or record_gradients:
+            root_folder = net.create_folder(surname)
         net.ensure_device(device)
         if record_function_calls:
             open(file_name_sufix + "/function_call_" + surname + ".txt", "w").close()
         if record_time:
             open(file_name_sufix + "/time_" + surname + ".txt", "w").close()
-        open(file_name_sufix + f"/test_training_{surname}.txt","w").close()
+        open(file_name_sufix + f"/test_training_{surname}.txt", "w").close()
         open(file_name_sufix + f"/loss_training_{surname}.txt", "w").close()
         for epoch in range(epochs):  # loop over the dataset multiple times
             running_loss = 0.0
@@ -1006,9 +1062,13 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     with open(file_name_sufix + f"/test_training_{surname}.txt",
                               "a") as f:
                         f.write(f"{eval}\n")
-                    if i % 200 == 199:  # print every 2000 mini-batches
+                    if i % 200 == 199:  # print every 200 mini-batches
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i + 1, running_loss / 200))
+                        if record_weigths:
+                            net.inspect_and_record_weigths(mask, root_folder, epoch, i)
+                        if record_gradient:
+                            net.inspect_and_record_gradients(mask, root_folder, epoch, i)
                         running_loss = 0.0
                 elif isinstance(optimizer, SAM):
 
@@ -1040,6 +1100,10 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     if i % 200 == 199:  # print every 200 mini-batches
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i + 1, running_loss / 200))
+                        if record_weigths:
+                            net.inspect_and_record_weigths(mask, root_folder, epoch, i)
+                        if record_gradient:
+                            net.inspect_and_record_gradients(mask, root_folder, epoch, i)
                         running_loss = 0.0
                 else:
                     t0 = time.time_ns()
@@ -1051,7 +1115,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     t1 = time.time_ns()
                     if record_time:
                         with open(file_name_sufix + "/time_" + surname + ".txt", "a") as f:
-                            f.write(str(t1 - t0)+"\n")
+                            f.write(str(t1 - t0) + "\n")
                     if record_function_calls:
                         with open(file_name_sufix + "/function_call_" + surname + ".txt", "a") as f:
                             f.write("1\n")
@@ -1066,9 +1130,31 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                     if i % 200 == 199:  # print every 200 mini-batches
                         print('[%d, %5d] loss: %.3f' %
                               (epoch + 1, i + 1, running_loss / 200))
-
+                        if record_weigths:
+                            net.inspect_and_record_weigths(mask, root_folder, epoch, i)
+                        if record_gradient:
+                            net.inspect_and_record_gradients(mask, root_folder, epoch, i)
                         running_loss = 0.0
             evaluate_model(net, testloader, iter_dataset=None)
+
+
+def read_regitered_weigths(root_directory="net_model", type="weight") -> dict:
+    elements = [x[0] for x in os.walk(root_directory)]
+    elements.pop(0)
+    container = {}
+    for name in elements:
+        for file in glob.glob(f"{name}/{type}*"):
+            epoch = int(re.search("(?<=_)e([0-50000000].*)(?=_)", file).group().replace(".np","").replace("e",""))
+            iteration = int(re.search("(?<=_)i([0-50000000].*)(?=.)", file).group().replace(".np","").replace("i",""))
+
+            # s1 = f"epoch {epoch}"
+            # s2 = f"iteration {iteration}"
+            real_name = name.replace(root_directory,"").replace("\\","")
+            if real_name not in container.keys():
+                container[real_name] = {epoch: {iteration: np.load(file)}}
+            else:
+                container[real_name].update({epoch: {iteration: np.load(file)}})
+    return container
 
 
 def test_against_original(dataset):
@@ -1259,37 +1345,67 @@ if __name__ == '__main__':
     #          distance=0,
     #          mask=None, record_function_calls=True, record_time=True)
     # torch.save(small_model.state_dict(), f"model_small_trained_KFAC")
+    # #
+    # big_model = NewNet()
+    # optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
+    # training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
+    #          mask=None, record_function_calls=True, record_time=True)
+    # torch.save(big_model.state_dict(), f"model_big_trained_SGD")
     #
-    big_model = NewNet()
-    optimizer = optim.SGD(big_model.parameters(), lr=0.001, momentum=0.9)
-    training(big_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_big", epochs=10, distance=0,
-             mask=None, record_function_calls=True, record_time=True)
-    torch.save(big_model.state_dict(), f"model_big_trained_SGD")
-
-    small_model = NewSmallNet()
-    optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
-    training(small_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_small", epochs=10,
-             distance=0,
-             mask=None, record_function_calls=True, record_time=True)
-    torch.save(small_model.state_dict(), f"model_small_trained_SGD")
+    # small_model = NewSmallNet()
+    # optimizer = optim.SGD(small_model.parameters(), lr=0.001, momentum=0.9)
+    # training(small_model, trainloader, testloader, optimizer, "traces", surname="SGD_conv_small", epochs=10,
+    #          distance=0,
+    #          mask=None, record_function_calls=True, record_time=True)
+    # torch.save(small_model.state_dict(), f"model_small_trained_SGD")
+    # #
     #
+    # big_model = NewNet()
+    # optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
+    # training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
+    #          mask=None, record_function_calls=True, record_time=True)
+    # torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
 
-    big_model = NewNet()
-    optimizer = KFACOptimizer(big_model, lr=0.001, momentum=0.5)
-    training(big_model, trainloader, testloader, optimizer, "traces", surname="KFAC_conv_big", epochs=10, distance=0,
-             mask=None, record_function_calls=True, record_time=True)
-    torch.save(big_model.state_dict(), f"model_big_trained_KFAC")
-
-    # TRYING THINGSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-    # net = Net()
+    """
+     The experiments in this next section are to find what happens if the training begings with a mask but no 
+     restriction  is imposed in the weights outside the mask. Will the weights grow  and then come back to begin 
+     small? 
+    """
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    ref_net = Net()
+    model_dict = ref_net.state_dict()
     # prune.global_unstructured(
     #     net.parameters_to_prune(),
     #     pruning_method=prune.L1Unstructured,
-    #     amount=count_parameters(net) // 2,
+    #     amount=count_parameters(ref_net) // 2,
     # )
-    # net.load_state_dict(torch.load("model_trained_vanila_pruned"))
-    # mask = get_inverted_mask(net)
-    # net.create_JSON("test.json")
-    # net.inspect_and_record_weigths(mask,"test.json",1,1)
+    ref_net.load_my_state_dict(torch.load("model_trained_vanila_pruned"))
+    ref_net.cuda()
+    evaluate_model(ref_net,testloader,None)
+    mask = get_inverted_mask(ref_net)
+    net = Net()
+    net.cuda()
+    net.apply_mask_plus_noise(list(ref_net.buffers()),mask,0,device)
+    # folder = net.create_folder("test")
+    # net.inspect_and_record_weigths(mask, folder, 1, 1)
+    # net.inspect_and_record_weigths(mask, folder, 1, 200)
+    # net.inspect_and_record_weigths(mask, folder, 2, 1)
+    # net.inspect_and_record_weigths(mask, folder, 2, 200)
+    # x, y = next(iter(trainloader))
+    # pred = net(x.cuda())
+    # loss = nn.CrossEntropyLoss()
+    # temp = loss(pred,y.cuda())
+    # temp.backward()
+    # net.inspect_and_record_gradients(mask, folder, 1, 1)
+    # net.inspect_and_record_gradients(mask, folder, 1, 200)
+    # net.inspect_and_record_gradients(mask, folder, 2, 1)
+    # net.inspect_and_record_gradients(mask, folder, 2, 200)
+    # a = read_regitered_weigths(folder, type="weigth")
+    # b = read_regitered_weigths(folder, type="gradient")
+    # things = []
 
+
+    optimizer = optim.SGD(net.parameters(),lr=0.0001,momentum=0.9)
+    training(net, trainloader, testloader, optimizer,"traces_trash",0,mask,"SGD_pruned_test",epochs=10,
+             record_weigths=True,record_gradients=True)
 

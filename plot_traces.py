@@ -38,6 +38,7 @@ def plot_mean_and_CI(t, mean, lb, ub, color_mean=None, color_shading=None, label
 
 
 def plot_list_with_x_axis(list_of_names=[], legend=[], x_axises=[], normalizer=1, x_axis_name="", title=""):
+
     plt.title(title, fontsize=20)
     color = cm.rainbow(np.linspace(0, 1, len(list_of_names)))
 
@@ -112,6 +113,30 @@ def plot_traces():
     # plt.legend(legend)
     plt.xticks(fontsize=15)
     plt.yticks(fontsize=15)
+    plt.show()
+
+def historgram_3d(dictionary):
+    # Fixing random state for reproducibility
+    np.random.seed(19680801)
+    epochs = list(dictionary.values())
+
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    x, y = np.random.rand(2, 100) * 4
+    hist, xedges, yedges = np.histogram2d(x, y, bins=4, range=[[0, 4], [0, 4]])
+
+    # Construct arrays for the anchor positions of the 16 bars.
+    xpos, ypos = np.meshgrid(xedges[:-1] + 0.25, yedges[:-1] + 0.25, indexing="ij")
+    xpos = xpos.ravel()
+    ypos = ypos.ravel()
+    zpos = 0
+
+    # Construct arrays with the dimensions for the 16 bars.
+    dx = dy = 0.5 * np.ones_like(zpos)
+    dz = hist.ravel()
+
+    ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+
     plt.show()
 
 
@@ -219,19 +244,19 @@ if __name__ == '__main__':
     # plot_list(names,legend,"Loss for CIFAR10")
     #
     #
-    names = ["pure_experiments/loss_training_CONV_small_KFAC.txt","pure_experiments/loss_training_CONV_small_SAM.txt", "pure_experiments/loss_training_CONV_small_SGD.txt","pure_experiments/loss_training_CONV_big_SGD.txt", "pure_experiments/loss_training_CONV_big_KFAC.txt"]
-    x_axis = ["pure_experiments/function_call_CONV_small_KFAC.txt","pure_experiments/function_call_CONV_small_SAM.txt", "pure_experiments/function_call_CONV_small_SGD.txt","pure_experiments/function_call_CONV_big_SGD.txt", "pure_experiments/function_call_CONV_big_KFAC.txt"]
+    names = ["pure_experiments/loss_training_FC_small_KFAC.txt","pure_experiments/loss_training_FC_small_SAM.txt", "pure_experiments/loss_training_FC_small_SGD.txt","pure_experiments/loss_training_FC_big_SGD.txt"]; x_axis = ["pure_experiments/function_call_FC_small_KFAC.txt","pure_experiments/function_call_FC_small_SAM.txt", "pure_experiments/function_call_FC_small_SGD.txt","pure_experiments/function_call_FC_big_SGD.txt"]
+    norm = 1
+    if "time" in x_axis[0]:
+        norm = 1e9
+    legend = ["KFAC small network","SAM small network","SGD small network","SGD large network"]
+    plot_list_with_x_axis(names,legend,x_axis,norm,"$f_n$","Loss function for CIFAR10 for FC Network")
 
-    legend = ["KFAC small network","SAM small network","SGD small network","SGD large network","KFAC large network"]
-    plot_list_with_x_axis(names,legend,x_axis,1,"$f_n$","Loss function for CIFAR10 for CONV Network")
 
 
-
-    names = ["pure_experiments/test_training_CONV_small_KFAC.txt","pure_experiments/test_training_CONV_small_SAM.txt", "pure_experiments/test_training_CONV_small_SGD.txt","pure_experiments/test_training_CONV_big_SGD.txt", "pure_experiments/test_training_CONV_big_KFAC.txt"]
-    x_axis = ["pure_experiments/function_call_CONV_small_KFAC.txt","pure_experiments/function_call_CONV_small_SAM.txt", "pure_experiments/function_call_CONV_small_SGD.txt","pure_experiments/time_CONV_big_SGD.txt", "pure_experiments/time_CONV_big_KFAC.txt"]
+    names = ["pure_experiments/test_training_FC_small_KFAC.txt","pure_experiments/test_training_FC_small_SAM.txt", "pure_experiments/test_training_FC_small_SGD.txt","pure_experiments/test_training_FC_big_SGD.txt"]; x_axis = ["pure_experiments/function_call_FC_small_KFAC.txt","pure_experiments/function_call_FC_small_SAM.txt", "pure_experiments/function_call_FC_small_SGD.txt","pure_experiments/function_call_FC_big_SGD.txt"]
     # legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet","SAM with small ConvNet"]
 
-    plot_list_with_x_axis(names,legend,x_axis,1,"$f_n$","Test accuracy for CIFAR10 for CONV Network")
+    plot_list_with_x_axis(names,legend,x_axis,norm,"$f_n$","Test accuracy for CIFAR10 for FC Network")
 
 
     # names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt",

@@ -204,17 +204,15 @@ if __name__ == '__main__':
     # Small model KFAC optimizer
     small = SmallFullyC(32, 32, 10)
     optimizer = KFACOptimizer(small, lr=0.001, momentum=0.5)
-    training(small, trainloader, testloader, optimizer, "pure_experiments", surname="FC_small_KFAC", epochs=10,
-             distance=0,
-             mask=None, record_function_calls=True, record_time=True)
+    training(small, trainloader, testloader, optimizer, "pure_experiments", distance=0, mask=None,
+             surname="FC_small_KFAC", epochs=10, record_time=True, record_function_calls=True)
     torch.save(small.state_dict(), f"FC_small_KFAC")
 
     # Big model KFAC optimizer
     big = BigFullyC(32, 32, 10)
     optimizer = KFACOptimizer(big, lr=0.001, momentum=0.5)
-    training(big, trainloader, testloader, optimizer, "pure_experiments", surname="FC_big_KFAC", epochs=10,
-             distance=0,
-             mask=None, record_function_calls=True, record_time=True)
+    training(big, trainloader, testloader, optimizer, "pure_experiments", distance=0, mask=None, surname="FC_big_KFAC",
+             epochs=10, record_time=True, record_function_calls=True)
     torch.save(big.state_dict(), f"FC_big_KFAC")
     ############################################################################################################
     # NOW THE SAME EXACT EXPERIMENTS BUT WITH CONVOLUTIONAL NETWORK ONLY.
