@@ -1405,7 +1405,7 @@ if __name__ == '__main__':
     # things = []
 
 
-    optimizer = optim.SGD(net.parameters(),lr=0.0001,momentum=0.9)
+    optimizer = optim.SGD(net.parameters(),lr=0.001,momentum=0.9)
     training(net, trainloader, testloader, optimizer,"traces_trash",0,mask,"SGD_pruned_test",epochs=10,
              record_weigths=True,record_gradients=True)
 
