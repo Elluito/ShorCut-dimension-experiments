@@ -1067,7 +1067,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                               (epoch + 1, i + 1, running_loss / 200))
                         if record_weigths:
                             net.inspect_and_record_weigths(mask, root_folder, epoch, i)
-                        if record_gradient:
+                        if record_gradients:
                             net.inspect_and_record_gradients(mask, root_folder, epoch, i)
                         running_loss = 0.0
                 elif isinstance(optimizer, SAM):
@@ -1102,7 +1102,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                               (epoch + 1, i + 1, running_loss / 200))
                         if record_weigths:
                             net.inspect_and_record_weigths(mask, root_folder, epoch, i)
-                        if record_gradient:
+                        if record_gradients:
                             net.inspect_and_record_gradients(mask, root_folder, epoch, i)
                         running_loss = 0.0
                 else:
@@ -1132,7 +1132,7 @@ def training(net, trainloader, testloader, optimizer, file_name_sufix, distance,
                               (epoch + 1, i + 1, running_loss / 200))
                         if record_weigths:
                             net.inspect_and_record_weigths(mask, root_folder, epoch, i)
-                        if record_gradient:
+                        if record_gradients:
                             net.inspect_and_record_gradients(mask, root_folder, epoch, i)
                         running_loss = 0.0
             evaluate_model(net, testloader, iter_dataset=None)
