@@ -1144,8 +1144,9 @@ def read_regitered_weigths(root_directory="net_model", type="weight") -> dict:
     container = {}
     for name in elements:
         for file in glob.glob(f"{name}/{type}*"):
-            epoch = int(re.search("(?<=_)e([0-50000000].*)(?=_)", file).group().replace(".np","").replace("e",""))
-            iteration = int(re.search("(?<=_)i([0-50000000].*)(?=.)", file).group().replace(".np","").replace("i",""))
+            print(file)
+            epoch = int(file[file.rfind("_e"):file.rfind("_i")].replace("_e",""))
+            iteration = int(file[file.rfind("_i",-15):file.rfind(".n",-15)].replace("_i",""))
 
             # s1 = f"epoch {epoch}"
             # s2 = f"iteration {iteration}"

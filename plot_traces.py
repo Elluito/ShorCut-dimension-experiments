@@ -38,7 +38,6 @@ def plot_mean_and_CI(t, mean, lb, ub, color_mean=None, color_shading=None, label
 
 
 def plot_list_with_x_axis(list_of_names=[], legend=[], x_axises=[], normalizer=1, x_axis_name="", title=""):
-
     plt.title(title, fontsize=20)
     color = cm.rainbow(np.linspace(0, 1, len(list_of_names)))
 
@@ -115,29 +114,88 @@ def plot_traces():
     plt.yticks(fontsize=15)
     plt.show()
 
-def historgram_3d(dictionary):
+
+def historgram_3d(dictionary, comparison="all"):
     # Fixing random state for reproducibility
     np.random.seed(19680801)
-    epochs = list(dictionary.values())
+    cumulative = None
+    comparison_by_layer = {}
+    for layer_name, layer in list(dictionary.items()):
+        cumulative_for_layer = []
+        for epoch, iterations_dictionary in sorted(layer.items()):
+            for iteration, weights in sorted(iterations_dictionary.items()):
+                cumulative_for_layer.append(weights)
+        comparison_by_layer[layer_name] = cumulative_for_layer
+        if cumulative is None:
+            cumulative = np.array(cumulative_for_layer)
+        else:
+            cumulative = np.hstack((cumulative, np.array(cumulative_for_layer)))
+    if comparison == "all":
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
+        x, y = np.random.rand(2, 100) * 4
+        histograms = []
+        bins = [0.1, 0.01, 0.001, 0.0001, 0.00001, -0.00001, -0.0001, -0.001, -0.01, -0.1]
+        bins.reverse()
+        for elem in cumulative:
+            hist, _ = np.histogram(elem, bins)
+            histograms.append(hist)
 
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    x, y = np.random.rand(2, 100) * 4
-    hist, xedges, yedges = np.histogram2d(x, y, bins=4, range=[[0, 4], [0, 4]])
+        histograms = np.array(histograms)
+        x_edge = np.array(list(range(1, 11)))
+        y_edge = np.array(bins)
+        hist, xedges, yedges = np.histogram2d(x, y, bins=4, range=[[0, 4], [0, 4]])
 
-    # Construct arrays for the anchor positions of the 16 bars.
-    xpos, ypos = np.meshgrid(xedges[:-1] + 0.25, yedges[:-1] + 0.25, indexing="ij")
-    xpos = xpos.ravel()
-    ypos = ypos.ravel()
-    zpos = 0
+        # Construct arrays for the anchor positions of the 16 bars.
+        xpos, ypos = np.meshgrid(x_edge, y_edge[:-1] + 0.25, indexing="ij")
+        xpos = xpos.ravel()
+        ypos = ypos.ravel()
+        zpos = 0
 
-    # Construct arrays with the dimensions for the 16 bars.
-    dx = dy = 0.5 * np.ones_like(zpos)
-    dz = hist.ravel()
+        # Construct arrays with the dimensions for the 16 bars.
+        dx = dy = 0.001 * np.ones_like(zpos)
+        dz = histograms.ravel()
 
-    ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+        ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
 
-    plt.show()
+        plt.show()
+    if comparison == "layers":
+        import tensorflow as tf
+
+        w = tf.summary.create_file_writer(f'test/logs')
+        for name, values in comparison_by_layer.items():
+            # fig = plt.figure()
+            # ax = fig.add_subplot(projection='3d')
+            # histograms = []
+            # bins = [0.1, 0.01, 0.001, 0.0001, 0.00001, -0.00001, -0.0001, -0.001, -0.01, -0.1]
+            # bins.reverse()
+
+            # x_edge = np.array(list(range(1, 11)))
+            # y_edge = np.array(bins)
+            #
+            # # Construct arrays for the anchor positions of the 16 bars.
+            # xpos, ypos = np.meshgrid(x_edge, y_edge[:-1] , indexing="xy")
+            # xpos = xpos.ravel()
+            # ypos = ypos.ravel()
+            # zpos = 0
+            #
+            # # Construct arrays with the dimensions for the 16 bars.
+            # dx = 0.001 * np.ones_like(zpos)
+            # dz = histograms.ravel()
+            # dy = 0.0001 * np.ones_like(zpos)
+            # ax.bar3d(xpos, ypos, zpos, dx, dy, dz, zsort='average')
+            # plt.title(name, fontsize=15)
+            # plt.show()
+
+            with w.as_default():
+                for step, elem in enumerate(values):
+                    # Generate fake "activations".
+                    tf.summary.histogram(f"layer_{name}", elem, step=step)
+                    # tf.summary.histogram("layer2/activate", activations[1], step=step)
+                    # tf.summary.histogram("layer3/activate", activations[2], step=step)
+
+    else:
+        raise Exception(f"Mode {comparison} is not supported.")
 
 
 def histogram_of_model(number):
@@ -244,20 +302,19 @@ if __name__ == '__main__':
     # plot_list(names,legend,"Loss for CIFAR10")
     #
     #
-    names = ["pure_experiments/loss_training_FC_small_KFAC.txt","pure_experiments/loss_training_FC_small_SAM.txt", "pure_experiments/loss_training_FC_small_SGD.txt","pure_experiments/loss_training_FC_big_SGD.txt"]; x_axis = ["pure_experiments/function_call_FC_small_KFAC.txt","pure_experiments/function_call_FC_small_SAM.txt", "pure_experiments/function_call_FC_small_SGD.txt","pure_experiments/function_call_FC_big_SGD.txt"]
-    norm = 1
-    if "time" in x_axis[0]:
-        norm = 1e9
-    legend = ["KFAC small network","SAM small network","SGD small network","SGD large network"]
-    plot_list_with_x_axis(names,legend,x_axis,norm,"$f_n$","Loss function for CIFAR10 for FC Network")
-
-
-
-    names = ["pure_experiments/test_training_FC_small_KFAC.txt","pure_experiments/test_training_FC_small_SAM.txt", "pure_experiments/test_training_FC_small_SGD.txt","pure_experiments/test_training_FC_big_SGD.txt"]; x_axis = ["pure_experiments/function_call_FC_small_KFAC.txt","pure_experiments/function_call_FC_small_SAM.txt", "pure_experiments/function_call_FC_small_SGD.txt","pure_experiments/function_call_FC_big_SGD.txt"]
-    # legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet","SAM with small ConvNet"]
-
-    plot_list_with_x_axis(names,legend,x_axis,norm,"$f_n$","Test accuracy for CIFAR10 for FC Network")
-
+    # names = ["pure_experiments/loss_training_FC_small_KFAC.txt","pure_experiments/loss_training_FC_small_SAM.txt", "pure_experiments/loss_training_FC_small_SGD.txt","pure_experiments/loss_training_FC_big_SGD.txt"]; x_axis = ["pure_experiments/function_call_FC_small_KFAC.txt","pure_experiments/function_call_FC_small_SAM.txt", "pure_experiments/function_call_FC_small_SGD.txt","pure_experiments/function_call_FC_big_SGD.txt"]
+    # norm = 1
+    # if "time" in x_axis[0]:
+    #     norm = 1e9
+    # legend = ["KFAC small network","SAM small network","SGD small network","SGD large network"]
+    # plot_list_with_x_axis(names,legend,x_axis,norm,"$f_n$","Loss function for CIFAR10 for FC Network")
+    #
+    #
+    #
+    # names = ["pure_experiments/test_training_FC_small_KFAC.txt","pure_experiments/test_training_FC_small_SAM.txt", "pure_experiments/test_training_FC_small_SGD.txt","pure_experiments/test_training_FC_big_SGD.txt"]; x_axis = ["pure_experiments/function_call_FC_small_KFAC.txt","pure_experiments/function_call_FC_small_SAM.txt", "pure_experiments/function_call_FC_small_SGD.txt","pure_experiments/function_call_FC_big_SGD.txt"]
+    # # legend = ["SGD with large ConvNet","KFAC with large ConvNet","KFAC with small ConvNet","SAM with small ConvNet"]
+    #
+    # plot_list_with_x_axis(names,legend,x_axis,norm,"$f_n$","Test accuracy for CIFAR10 for FC Network")
 
     # names = ["traces/test_training_SGD_conv_big.txt","traces/test_training_KFAC_conv_big.txt",
     #          "traces/test_training_KFAC_conv_small.txt","traces/test_training_SAM_conv_small.txt"]
@@ -282,3 +339,10 @@ if __name__ == '__main__':
     # l = np.loadtxt("traces2/time_KFAC_conv_small.txt")
     #
     # plot_list_with_x_axis(names, legend, time, 1e9, "Computation time", "Test accuracy for CIFAR10")
+
+    ###### 3D histograms ########
+    from main import read_regitered_weigths
+
+    X = read_regitered_weigths("net_model/SGD_pruned_test/", type="weigth")
+    G = read_regitered_weigths("net_model/SGD_pruned_test/", type="gradient")
+    historgram_3d(X, "layers")
