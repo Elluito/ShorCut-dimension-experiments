@@ -8,8 +8,6 @@ import re
 import torch
 from main import Net, get_inverted_mask, count_parameters
 
-loss_regularized = {-1: np.loadtxt("traces/loss_normal_training.txt")}
-distances = []
 
 
 def running_mean(N, x):
