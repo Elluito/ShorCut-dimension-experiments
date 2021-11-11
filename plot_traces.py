@@ -162,7 +162,7 @@ def historgram_3d(dictionary, comparison="all"):
     if comparison == "layers":
         import tensorflow as tf
         path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
-        w = tf.summary.create_file_writer(f'{path_colab}test/logs')
+        w = tf.summary.create_file_writer(f'{path_colab}histograms/logs')
         for name, values in comparison_by_layer.items():
             # fig = plt.figure()
             # ax = fig.add_subplot(projection='3d')
