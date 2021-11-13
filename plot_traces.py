@@ -113,7 +113,7 @@ def plot_traces():
     plt.show()
 
 
-def historgram_3d(dictionary, comparison="all"):
+def historgram_3d(dictionary,name ,comparison="all"):
     # Fixing random state for reproducibility
     np.random.seed(19680801)
     cumulative = None
@@ -160,7 +160,8 @@ def historgram_3d(dictionary, comparison="all"):
     if comparison == "layers":
         import tensorflow as tf
         path_colab = "/content/drive/MyDrive/Colab Notebooks/Extra-dimension-role/"
-        w = tf.summary.create_file_writer(f'{path_colab}histograms/logs')
+        w = tf.summary.create_file_writer(f'{path_colab}histograms/{name}/logs')
+
         for name, values in comparison_by_layer.items():
             # fig = plt.figure()
             # ax = fig.add_subplot(projection='3d')
@@ -341,6 +342,6 @@ if __name__ == '__main__':
     ###### 3D histograms ########
     from main import read_regitered_weigths
 
-    X = read_regitered_weigths("net_model/SGD_pruned_test/", type="weigth")
-    G = read_regitered_weigths("net_model/SGD_pruned_test/", type="gradient")
-    historgram_3d(X, "layers")
+    X = read_regitered_weigths("Net_model/SAM_pruned_test/", type="weigth")
+    G = read_regitered_weigths("Net_model/SAM_pruned_test/", type="gradient")
+    historgram_3d(X,"SAM", "layers")

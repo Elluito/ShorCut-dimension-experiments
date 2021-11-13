@@ -1404,9 +1404,9 @@ if __name__ == '__main__':
     # a = read_regitered_weigths(folder, type="weigth")
     # b = read_regitered_weigths(folder, type="gradient")
     # things = []
-
-
-    optimizer = optim.SGD(net.parameters(),lr=0.001,momentum=0.9)
-    training(net, trainloader, testloader, optimizer,"traces_trash",0,mask,"SGD_pruned_test",epochs=10,
+    from sam import  SAM
+    optimizer = SAM(net.parameters(),optim.SGD,lr=0.01,momentum=0.9)
+    training(net, trainloader, testloader, optimizer,"traces_trash",0,mask,"SAM_pruned_test",epochs=10,
              record_weigths=True,record_gradients=True)
+
 
